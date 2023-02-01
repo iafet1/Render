@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# ignore directorys
+[Bb]uild/
+[Bb]in/
+[Dd]ata/
+.vscode/
+
+# ignore files
+*.log
+*.spv
