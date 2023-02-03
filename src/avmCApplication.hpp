@@ -5,6 +5,7 @@
 #pragma once
 
 #include "stdafx.hpp"
+#include "platform/platforms.hpp"
 
 namespace avm {
 
@@ -52,17 +53,6 @@ namespace avm {
         // рендер
         CRender* m_render{nullptr};
 
-        // окно
-        #if defined(_WIN32)
-            HINSTANCE m_hInst{nullptr}; // дескриптор приложения
-            HWND      m_hWnd{nullptr};  // дескриптор главного окна приложения
-        #else
-            #error "Not support"   
-        #endif // 
-
-        uint32_t m_width {800}; // ширина окна
-        uint32_t m_heght {450}; // высота окна
-
         // приложение
         const char* m_name {nullptr}; // имя программы
         uint32_t m_exitCode {0}; // код завершения приложения
@@ -70,6 +60,19 @@ namespace avm {
         bool m_initialized {false}; // флаг иницилизации
         bool m_exit {false}; // флаг завершения приложения
         
+        // окно
+        platform::WindowDesc m_window; // свойства окна
+
+    //    #if defined(_WIN32)
+    //        HINSTANCE m_hInst{nullptr}; // дескриптор приложения
+    //        HWND      m_hWnd{nullptr};  // дескриптор главного окна приложения
+    //    #else
+    //        #error "Not support"   
+    //    #endif // 
+
+    //    uint32_t m_width {800}; // ширина окна
+    //    uint32_t m_heght {450}; // высота окна
+
     };
 }
 
