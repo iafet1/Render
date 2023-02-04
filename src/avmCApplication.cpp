@@ -4,9 +4,11 @@
 
 #include "stdafx.hpp"
 #include "avmCLog.hpp"
+#include "avmCGxDevice.hpp"
+#include "platform/platforms.hpp"
+
 #include "avmCApplication.hpp"
 
-#include "platform/platforms.hpp"
 
 constexpr char FILE_NAME[] = "avmCApplication.cpp";
 
@@ -46,7 +48,12 @@ void avm::CApplication::inicilize()
 {
     assert(!m_initialized);
 
+    // создание графического устройства
+    m_gxDevice = new graphics::CGxDevice();
+
+    // создание основного окна приложения
     windowCreate(WIN_WIDTH, WIN_HEIGHT);
+
     m_initialized = true;
 
 }
@@ -54,6 +61,12 @@ void avm::CApplication::inicilize()
 void avm::CApplication::shutdown()
 {
     assert(m_initialized);
+
+    // удаление графического устройства
+    if (m_gxDevice != nullptr) {
+        delete m_gxDevice;
+        m_gxDevice = nullptr;
+    }
 
     m_window = {};
     m_initialized = false;

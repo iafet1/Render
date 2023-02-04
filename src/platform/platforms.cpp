@@ -118,11 +118,46 @@ namespace platform {
         return false;
     }
 
+    void* OpenLibrary(const char *name)
+    {
+        return (void *)(LoadLibraryA(name));
+    }
+
+    void CloseLibrary(void *handle)
+    {
+        FreeLibrary((HMODULE)handle);
+    }
+
+    void* GetProcAddr(void *handle, const char *nameProc)
+    {
+        return (void *)(GetProcAddress((HMODULE)handle, nameProc));
+    }
+
 #else
     #error "Платформа пока не поддерживается"
 
-    void WindowCreate(WindowDesc& window, const char* name) {}
-    bool GetMessageWindow() {}
+    void WindowCreate(WindowDesc& window, const char* name) 
+    {
+    }
+
+    bool GetMessageWindow() 
+    { 
+        return false;
+    }
+
+    void *OpenLibrary(const char *name)
+    {
+        return nullptr;
+    }
+
+    void CloseLibrary(void *handle)
+    {
+    }
+
+    void *GetProcAddr(void *handle, const char *nameProc)
+    {
+        return nullptr;
+    }
 
 #endif
 }

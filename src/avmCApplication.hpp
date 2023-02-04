@@ -6,6 +6,7 @@
 
 #include "stdafx.hpp"
 #include "platform/platforms.hpp"
+#include "avmCGxDevice.hpp"
 
 namespace avm {
 
@@ -50,6 +51,9 @@ namespace avm {
     private:
         /* data */
 
+        // графическое устройство
+        graphics::CGxDevice* m_gxDevice {nullptr};
+
         // рендер
         CRender* m_render{nullptr};
 
@@ -63,15 +67,6 @@ namespace avm {
         // окно
         platform::WindowDesc m_window; // свойства окна
 
-    //    #if defined(_WIN32)
-    //        HINSTANCE m_hInst{nullptr}; // дескриптор приложения
-    //        HWND      m_hWnd{nullptr};  // дескриптор главного окна приложения
-    //    #else
-    //        #error "Not support"   
-    //    #endif // 
-
-    //    uint32_t m_width {800}; // ширина окна
-    //    uint32_t m_heght {450}; // высота окна
 
     };
 }

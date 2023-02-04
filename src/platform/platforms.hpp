@@ -30,6 +30,15 @@ namespace platform {
 
     // чтение сообщений очереди окна (return true = WM_QUIT)
     bool GetMessageWindow();
+
+    // открыть(загрузить) библиотеку
+    void *OpenLibrary(const char *name);
+
+    // закрыть(выгрузить) библиотеку
+    void CloseLibrary(void *handle);
+
+    // получить указатель на данную функцию библиотеки
+    void *GetProcAddr(void *handle, const char *nameProc);
     
 }
 }

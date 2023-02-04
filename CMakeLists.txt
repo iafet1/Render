@@ -4,6 +4,9 @@ project(Render VERSION 0.1.0)
 include(CTest)
 enable_testing()
 
+# Configure CMake global variables
+set(CMAKE_CXX_STANDARD 17)
+
 add_compile_definitions(_LOG)
 
 include_directories(
