@@ -16,16 +16,20 @@ namespace avm::platform {
     {
         switch (Msg)
         {
+            // блокировка перерисовки области окна
+            case WM_ERASEBKGND: {
+                return 1;
+            }
+
+            // закрытие главного окна приложения и завершение программы
             case WM_CLOSE:
-            case WM_DESTROY:
-            {
+            case WM_DESTROY:             {
                 PostQuitMessage(0);
                 return 0;
             }
 
             // TEMP: временно для закрытия окна
-            case WM_KEYDOWN:
-            {
+            case WM_KEYDOWN: {
                 if (wParam == VK_ESCAPE)
                     PostQuitMessage(1);
 
@@ -137,6 +141,7 @@ namespace avm::platform {
 
     void WindowCreate(WindowDesc& window, const char* name) 
     {
+        THROW();
     }
 
     bool GetMessageWindow() 
