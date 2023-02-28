@@ -22,6 +22,11 @@ namespace avm::graphics {
         CGxDevice &operator=(const CGxDevice &) = delete;
 
         // API
+		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		
+		// получить указатель на графическое устройство
+		inline CGxDevice* GetGraphicsDevice();
+
 
     private :
         // functions
@@ -57,7 +62,4 @@ namespace avm::graphics {
 
     };
     
-    // получить указатель на графическое устройство
-    inline CGxDevice* GetGraphicsDevice();
-
 }

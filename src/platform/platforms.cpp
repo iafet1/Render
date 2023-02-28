@@ -7,8 +7,7 @@
 
 constexpr char FILE_NAME[] = "platforms.cpp";
 
-namespace avm {
-namespace platform {
+namespace avm::platform {
 
 #if defined(WIN32) || defined(_WIN32)
 
@@ -160,5 +159,4 @@ namespace platform {
     }
 
 #endif
-}
 }

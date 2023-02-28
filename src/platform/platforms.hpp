@@ -6,8 +6,7 @@
 
 #include "../stdafx.hpp"
 
-namespace avm {
-namespace platform {
+namespace avm::platform {
 
     struct WindowDesc
     {
@@ -40,5 +39,4 @@ namespace platform {
     // получить указатель на данную функцию библиотеки
     void *GetProcAddr(void *handle, const char *nameProc);
     
-}
 }
