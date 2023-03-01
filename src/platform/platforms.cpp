@@ -4,6 +4,7 @@
 
 #include "platforms.hpp"
 #include "../avmCLog.hpp"
+#include "../avmEvent.hpp"
 
 constexpr char FILE_NAME[] = "platforms.cpp";
 
@@ -23,15 +24,19 @@ namespace avm::platform {
 
             // закрытие главного окна приложения и завершение программы
             case WM_CLOSE:
-            case WM_DESTROY:             {
-                PostQuitMessage(0);
+            case WM_DESTROY: {
+                event::SetEvent(event::AppTypes::EVENT_APP_QUIT,
+                               (event::Params){0, 0});
+                //PostQuitMessage(0);
                 return 0;
             }
 
             // TEMP: временно для закрытия окна
             case WM_KEYDOWN: {
                 if (wParam == VK_ESCAPE)
-                    PostQuitMessage(1);
+                event::SetEvent(event::AppTypes::EVENT_APP_QUIT,
+                                (event::Params){1, 0});
+                //PostQuitMessage(1);
 
                 return 0;
             }
