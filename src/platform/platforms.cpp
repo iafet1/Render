@@ -25,18 +25,21 @@ namespace avm::platform {
             // закрытие главного окна приложения и завершение программы
             case WM_CLOSE:
             case WM_DESTROY: {
-                event::SetEvent(event::AppTypes::EVENT_APP_QUIT,
-                               (event::Params){0, 0});
+                Variant param1{.u32 = 0};
+                Variant param2{.u32 = 0};
+                event::SetEvent(event::AppTypes::EVENT_APP_QUIT, param1, param2);
                 //PostQuitMessage(0);
                 return 0;
             }
 
             // TEMP: временно для закрытия окна
             case WM_KEYDOWN: {
-                if (wParam == VK_ESCAPE)
-                event::SetEvent(event::AppTypes::EVENT_APP_QUIT,
-                                (event::Params){1, 0});
-                //PostQuitMessage(1);
+                if (wParam == VK_ESCAPE) {
+                    Variant param1{.u32 = 1};
+                    Variant param2{.u32 = 0};
+                    event::SetEvent(event::AppTypes::EVENT_APP_QUIT, param1, param2);
+                    //PostQuitMessage(1);
+                }
 
                 return 0;
             }

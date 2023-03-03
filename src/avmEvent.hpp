@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "stdafx.hpp"
+
 namespace avm::event {
 
     // Типы событий приложения
@@ -17,33 +19,21 @@ namespace avm::event {
         EVENT_APP_MAX           // максимальное количество типов событий приложения
     };
 
-    // параметры или данные (16 байт)
-    union Params
-    {
-        long long m_64[2]; // 64-битные данные
-        int       m_32[4]; // 32-битные данные
-        char      m_8[16];  // 8-битные данные
-    };
-
-    // данные обработчика событий
-    struct HandlerEvents
-    {
-        void *object;                                 // объект регистриющий функцию события
-        bool (*onEvent)(void *object, Params params); // функция обратного вызова
-    };
-
+    // функция обратного вызова события
+    typedef bool (*PFN_OnEvent)(void *object, Variant param1, Variant param2);
+    
     // API
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // установка события
-    void SetEvent(AppTypes type, Params params);
+    void SetEvent(AppTypes type, Variant param1, Variant param2);
 
     // обработка событий в текущем кадре
     void HandlingEvents();
 
     // регистрация обработчика события
-    bool RegisterHandler(AppTypes typeEvent, HandlerEvents &he);
+    bool RegisterHandler(AppTypes typeEvent, void *object, PFN_OnEvent pFunction);
 
     // удаление регистрации обработчика события
-    void UnRegisterHandler(AppTypes typeEvent, HandlerEvents &he);
+    void UnRegisterHandler(AppTypes typeEvent, void *object);
 }

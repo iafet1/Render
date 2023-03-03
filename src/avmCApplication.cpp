@@ -39,6 +39,7 @@ void avm::CApplication::Run()
     while (!m_exit)
     {
         event::HandlingEvents();
+        
         getMessageWindow();
     }
 
@@ -55,16 +56,14 @@ void avm::CApplication::inicilize()
     // создание основного окна приложения
     windowCreate(WIN_WIDTH, WIN_HEIGHT);
 
-    // TODO: test event QUIT
-    // регистрация события
-    event::HandlerEvents he = { this, 
-        [](void *object, event::Params params) -> bool { // обработчик события QUIT
-            CApplication *app = static_cast<CApplication *>(object);
-            app->SetExitCode(params.m_32[0]);
-            return false;
-        }
-    };
-    event::RegisterHandler(event::AppTypes::EVENT_APP_QUIT, he);
+    // TODO: test event QUIT: регистрация события
+    event::RegisterHandler(event::AppTypes::EVENT_APP_QUIT, this,
+                           [](void *object, Variant param1, Variant param2) -> bool
+                           {
+                               CApplication *app = static_cast<CApplication *>(object);
+                               app->SetExitCode(param1.u32);
+                               return false;
+                           });
 
     m_initialized = true;
 }
@@ -74,8 +73,7 @@ void avm::CApplication::shutdown()
     assert(m_initialized);
 
     // TODO: test event QUIT
-    event::HandlerEvents he = {this, nullptr};
-    event::UnRegisterHandler(event::AppTypes::EVENT_APP_QUIT, he);
+    event::UnRegisterHandler(event::AppTypes::EVENT_APP_QUIT, this);
 
     // удаление графического устройства
     if (m_gxDevice != nullptr)
