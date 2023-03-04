@@ -4,7 +4,8 @@
 
 #include "platforms.hpp"
 #include "../avmCLog.hpp"
-#include "../avmEvent.hpp"
+#include "../avmCInput.hpp"
+
 
 constexpr char FILE_NAME[] = "platforms.cpp";
 
@@ -12,9 +13,13 @@ namespace avm::platform {
 
 #if defined(WIN32) || defined(_WIN32)
 
+#include "windowsx.h"
+
     // оконная процедура для WIN32
     static LRESULT WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
     {
+        CInput *in = GetInputClass();
+
         switch (Msg)
         {
             // блокировка перерисовки области окна
@@ -25,21 +30,95 @@ namespace avm::platform {
             // закрытие главного окна приложения и завершение программы
             case WM_CLOSE:
             case WM_DESTROY: {
-                Variant param1{.u32 = 0};
-                Variant param2{.u32 = 0};
-                event::SetEvent(event::AppTypes::EVENT_APP_QUIT, param1, param2);
-                //PostQuitMessage(0);
+                in->KeyPressed(VK_ESCAPE);
                 return 0;
             }
 
-            // TEMP: временно для закрытия окна
+            // TEMP: временно 
+            case WM_SYSKEYDOWN:
             case WM_KEYDOWN: {
-                if (wParam == VK_ESCAPE) {
-                    Variant param1{.u32 = 1};
-                    Variant param2{.u32 = 0};
-                    event::SetEvent(event::AppTypes::EVENT_APP_QUIT, param1, param2);
-                    //PostQuitMessage(1);
-                }
+                in->KeyPressed(wParam);
+                return 0;
+            }
+
+            case WM_SYSKEYUP:
+            case WM_KEYUP: {
+                in->KeyReleased(wParam);
+                return 0;
+            }
+
+            case WM_LBUTTONDOWN:
+            case WM_RBUTTONDOWN:
+            case WM_MBUTTONDOWN: {
+                POINT pt{
+                    .x = GET_X_LPARAM(lParam),
+                    .y = GET_Y_LPARAM(lParam)
+                };
+
+                in->ButtonPressed(wParam, pt);
+
+                return 0;
+            }
+
+            case WM_LBUTTONUP:
+            case WM_RBUTTONUP:
+            case WM_MBUTTONUP: {
+                POINT pt{
+                    .x = GET_X_LPARAM(lParam),
+                    .y = GET_Y_LPARAM(lParam)
+                };
+
+                in->ButtonReleased(wParam, pt);
+
+                return 0;
+            }
+
+            case WM_XBUTTONDOWN: {
+                uint16_t keyState = GET_KEYSTATE_WPARAM(wParam);
+                uint16_t buttonX = GET_XBUTTON_WPARAM(wParam);
+                POINT pt{
+                    .x = GET_X_LPARAM(lParam),
+                    .y = GET_Y_LPARAM(lParam)};
+
+                uint32_t code = (buttonX << 16) + keyState;
+                in->ButtonPressed(code, pt);
+
+                return true;
+            }
+
+            case WM_XBUTTONUP: {
+                uint16_t keyState = GET_KEYSTATE_WPARAM(wParam);
+                uint16_t buttonX = GET_XBUTTON_WPARAM(wParam);
+                POINT pt{
+                    .x = GET_X_LPARAM(lParam),
+                    .y = GET_Y_LPARAM(lParam)};
+
+                uint32_t code = (buttonX << 16) + keyState;
+                in->ButtonReleased(code, pt);
+
+                return true;
+            }
+
+            case WM_MOUSEMOVE: {
+                POINT pt{
+                    .x = GET_X_LPARAM(lParam),
+                    .y = GET_Y_LPARAM(lParam)
+                };
+
+                in->MouseMove(wParam, pt);
+
+                return 0;
+            }
+
+            case WM_MOUSEWHEEL: {
+                uint16_t keyState = GET_KEYSTATE_WPARAM(wParam);
+                int16_t delta = GET_WHEEL_DELTA_WPARAM(wParam);
+                POINT pt{
+                    .x = GET_X_LPARAM(lParam),
+                    .y = GET_Y_LPARAM(lParam)};
+
+                uint32_t code = (delta << 16) + keyState;
+                in->MouseWheel(code, pt);
 
                 return 0;
             }
@@ -66,7 +145,7 @@ namespace avm::platform {
             .hInstance      = window.hInstance,      // Дескриптор экземпляра, содержащего оконную процедуру для класса.
             .hIcon          = NULL,                  // Дескриптор значка класса.
             .hCursor        = NULL,                  // Дескриптор курсора класса.
-            .hbrBackground  = NULL,                  // (HBRUSH)COLOR_BACKGROUND;  // Дескриптор фоновой кисти класса.
+            .hbrBackground  = NULL,                  // Дескриптор фоновой кисти класса.
             .lpszMenuName   = NULL,                  // Указатель на символьную строку с завершающим нулем, которая определяет имя ресурса меню класса.
             .lpszClassName  = name,                  // Указатель на строку с завершающим нулем или является атомом.
             .hIconSm        = NULL                   // Дескриптор маленького значка, связанного с классом окна.

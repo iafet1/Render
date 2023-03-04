@@ -4,29 +4,32 @@
 
 #pragma once
 
-#include "stdafx.hpp"
-
 namespace avm::event {
 
     // Типы событий приложения
     enum class AppTypes
     {
-        EVENT_APP_KEYBOARD = 0, // событие клавиатуры
-        EVENT_APP_MOUSE,        // событие мыши
-        EVENT_APP_QUIT,         // завершение программы
-        EVENT_APP_RESIZE,       // изменение размера главного окна приложения
-        
-        EVENT_APP_MAX           // максимальное количество типов событий приложения
+        EVENT_APP_COMMAND = 0,     // событие комманда
+        EVENT_APP_KEY_PRESSED,     // событие нажатие клавиши клавиатуры
+        EVENT_APP_KEY_RELEASED,    // событие отпускания клавиши клавиатуры
+        EVENT_APP_BUTTON_PRESSED,  // событие нажатие кнопки мыши
+        EVENT_APP_BUTTON_RELEASED, // событие отпускания кнопки мыши
+        EVENT_APP_MOUSE_MOVED,     // событие перемещение мыши
+        EVENT_APP_MOUSE_WHEEL,     // событие прокрутка колесика мыши
+        EVENT_APP_RESIZED,         // изменение размера главного окна приложения
+        EVENT_APP_QUIT,            // завершение программы
+
+        EVENT_APP_MAX              // максимальное количество типов событий приложения
     };
 
     // функция обратного вызова события
-    typedef bool (*PFN_OnEvent)(void *object, Variant param1, Variant param2);
+    typedef bool (*PFN_OnEvent)(void *object, union Variant param1, union Variant param2);
     
     // API
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // установка события
-    void SetEvent(AppTypes type, Variant param1, Variant param2);
+    void SetEvent(AppTypes type, union Variant param1, union Variant param2);
 
     // обработка событий в текущем кадре
     void HandlingEvents();

@@ -266,3 +266,28 @@ enum class KeyCode : unsigned char
     KEY_CODE_PA1 = 0xFD,      //
     KEY_CODE_OEM_CLEAR = 0xFE //
 };
+
+enum MouseCode : unsigned short
+{
+    // кнопки мыши
+    MOUSE_CODE_LBUTTON = 0x01,  // левая кнопка мыши
+    MOUSE_CODE_RBUTTON = 0x02,  // правая кнопка мыши
+    MOUSE_CODE_MBUTTON = 0x04,  // средняя кнопка мыши
+    MOUSE_CODE_4_BUTTON = 0x08, // 1-я дополнительная кнопка мыши
+    MOUSE_CODE_5_BUTTON = 0x10, // 2-я дополнительная кнопка мыши
+    MOUSE_CODE_6_BUTTON = 0x20, // 3-я дополнительная кнопка мыши
+    MOUSE_CODE_7_BUTTON = 0x40, // 4-я дополнительная кнопка мыши
+    MOUSE_CODE_8_BUTTON = 0x80, // 5-я дополнительная кнопка мыши
+
+    // ключи модификаторы
+    MOUSE_CODE_MODE_LSHIFT = 0x0100, // левый shift - нажата?
+    MOUSE_CODE_MODE_RSHIFT = 0x0200, // правый shift - нажата?
+    MOUSE_CODE_MODE_LCTRL = 0x0400, // левый Ctrl - нажата?
+    MOUSE_CODE_MODE_RCTRL = 0x0800, // правый Ctrl - нажата?
+    MOUSE_CODE_MODE_LALT = 0x1000, // левый Alt - нажата?
+    MOUSE_CODE_MODE_RALT = 0x2000, // правый Alt - нажата?
+    MOUSE_CODE_MODE_LWIN = 0x4000, // левый Win - нажата?
+    MOUSE_CODE_MODE_RWIN = 0x8000, // правый Win - нажата?
+
+    MOUSE_CODE_MAX
+};
