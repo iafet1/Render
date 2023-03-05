@@ -223,8 +223,32 @@ namespace avm::platform {
         return (void *)(GetProcAddress((HMODULE)handle, nameProc));
     }
 
+    double GetPerformanceFrequency()
+    {
+        LARGE_INTEGER li;
+        if (!QueryPerformanceFrequency(&li))
+            return 0.0;
+        
+        return static_cast<double>(li.QuadPart);
+    }
+
+    double GetPerformanceCounter()
+    {
+        LARGE_INTEGER li;
+        QueryPerformanceCounter(&li);
+
+        return static_cast<double>(li.QuadPart);
+    }
+
+    void Sleep(uint32_t ms)
+    {
+        ::Sleep(ms);
+    }
+
 #else
     #error "Платформа пока не поддерживается"
+
+    #include <unistd.h>
 
     void WindowCreate(WindowDesc& window, const char* name) 
     {
@@ -250,5 +274,21 @@ namespace avm::platform {
         return nullptr;
     }
 
+    double GetPerformanceFrequency()
+    {
+        return 0.0;
+    }
+
+    double GetPerformanceCounter()
+    {
+        return 0.0;
+    }
+
+    void Sleep(uint32_t ms)
+    {
+        usleep(ms * 1000);
+    }
+
 #endif
+
 }

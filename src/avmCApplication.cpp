@@ -3,9 +3,10 @@
 //
 
 #include "stdafx.hpp"
-#include "avmCLog.hpp"
-#include "avmCGxDevice.hpp"
 #include "platform/platforms.hpp"
+#include "avmCLog.hpp"
+#include "avmCTimer.hpp"
+#include "avmCGxDevice.hpp"
 
 #include "avmCApplication.hpp"
 #include "avmEvent.hpp"
@@ -40,11 +41,17 @@ void avm::CApplication::Run()
         inicilize();
     }
 
+    CTimer timer;
+    timer.Start();
+
     while (!m_exit)
     {
+        double elapsed = timer.Elapsed();
+
         event::HandlingEvents();
 
         getMessageWindow();
+
     }
 
     return;

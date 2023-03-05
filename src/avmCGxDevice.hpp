@@ -24,9 +24,6 @@ namespace avm::graphics {
         // API
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		
-		// получить указатель на графическое устройство
-		inline CGxDevice* GetGraphicsDevice();
-
 
     private :
         // functions
@@ -61,5 +58,8 @@ namespace avm::graphics {
         VkInstance m_vkInstance {VK_NULL_HANDLE}; // дескриптор экземпляра Vulkan
 
     };
+
+    // получить указатель на графическое устройство
+    inline CGxDevice *GetGraphicsDevice();
     
 }
