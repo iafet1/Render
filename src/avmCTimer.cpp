@@ -8,19 +8,25 @@
 
 namespace avm {
 
-    double CTimer::Start()
-    {
-        m_Frequency = 1.0 / platform::GetPerformanceFrequency();
-        assert(m_Frequency != 0.0 && "Ошибка запроса частоты.");
-
-        m_startTime = platform::GetPerformanceCounter() * m_Frequency;
-        return m_startTime;
-    }
+    static double g_Frequency { (1.0 / platform::GetPerformanceFrequency()) }; // тиков в секунду
 
     inline double CTimer::Now()
     {
-        m_currentTime = platform::GetPerformanceCounter() * m_Frequency;
+        m_currentTime = platform::GetPerformanceCounter() * g_Frequency;
         return m_currentTime;
+    }
+
+    inline double CTimer::Update()
+    {
+        double elapsed = m_currentTime - m_startTime;
+        m_startTime = m_currentTime;
+        return elapsed;
+    }
+
+    double CTimer::Start()
+    {
+        m_startTime = platform::GetPerformanceCounter() * g_Frequency;
+        return m_startTime;
     }
 
     double CTimer::Elapsed()
@@ -29,11 +35,4 @@ namespace avm {
         return Update();
     }
     
-    inline double CTimer::Update()
-    {
-        double elapsed = m_currentTime - m_startTime;
-        m_startTime = m_currentTime;
-        return elapsed;
-    }
-
 }
