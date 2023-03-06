@@ -38,18 +38,62 @@ void avm::CApplication::Run()
 
     if (!m_initialized)
     {
-        inicilize();
+        initialization();
+        m_initialized = true;
     }
 
+    const float target_deltaTime = 1.0f / m_targetFrameRate;
+
     CTimer timer;
-    timer.Start();
 
     while (!m_exit)
     {
-        double elapsed = timer.Elapsed();
-
+        // обработать события
         event::HandlingEvents();
 
+        m_deltaTime = timer.Elapsed();
+
+        // задержка для фиксации кадров с частотой 'm_targetFrameRate' в секунду
+        if (m_frameRateLock && m_deltaTime < target_deltaTime)
+        {
+            platform::Sleep((target_deltaTime - m_deltaTime) * 1000);
+            m_deltaTime += timer.Elapsed();
+        }
+
+        // Фиксированное время обновления
+        {
+            if (m_frameSkip)
+            {
+                m_deltaTimeAccumulator += m_deltaTime;
+                if (m_deltaTimeAccumulator > 10)
+                {
+                    // приложение, вероятно, потеряло контроль, исправленное обновление заняло бы слишком много времени
+                    m_deltaTimeAccumulator = 0;
+                }
+
+                const float targetFrameRateInv = 1.0f / m_targetFrameRate;
+                while (m_deltaTimeAccumulator >= targetFrameRateInv)
+                {
+                    FixedUpdate();
+                    m_deltaTimeAccumulator -= targetFrameRateInv;
+                }
+            }
+            else
+            {
+                FixedUpdate();
+            }
+        }
+
+        // Обновление с переменным временем
+        Update(m_deltaTime);
+
+        // TODO: отрисовка
+        Render();
+
+        // TODO: обработать композицию
+        Compose();
+
+        // обработать пришедшие сообщения окна
         getMessageWindow();
 
     }
@@ -57,7 +101,27 @@ void avm::CApplication::Run()
     return;
 }
 
-void avm::CApplication::inicilize()
+void avm::CApplication::Initialize()
+{
+}
+
+void avm::CApplication::Update(float dt)
+{
+}
+
+void avm::CApplication::FixedUpdate()
+{
+}
+
+void avm::CApplication::Render()
+{
+}
+
+void avm::CApplication::Compose()
+{
+}
+
+void avm::CApplication::initialization()
 {
     assert(!m_initialized);
 

@@ -223,21 +223,21 @@ namespace avm::platform {
         return (void *)(GetProcAddress((HMODULE)handle, nameProc));
     }
 
-    double GetPerformanceFrequency()
+    float GetPerformanceFrequency()
     {
         LARGE_INTEGER li;
         if (!QueryPerformanceFrequency(&li))
             return 0.0;
         
-        return static_cast<double>(li.QuadPart);
+        return static_cast<float>(li.QuadPart);
     }
 
-    double GetPerformanceCounter()
+    float GetPerformanceCounter()
     {
         LARGE_INTEGER li;
         QueryPerformanceCounter(&li);
 
-        return static_cast<double>(li.QuadPart);
+        return static_cast<float>(li.QuadPart);
     }
 
     void Sleep(uint32_t ms)

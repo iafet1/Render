@@ -8,28 +8,28 @@
 
 namespace avm {
 
-    static double g_Frequency { (1.0 / platform::GetPerformanceFrequency()) }; // тиков в секунду
+    static float g_Frequency { (1.0f / platform::GetPerformanceFrequency()) }; // тиков в секунду
 
-    inline double CTimer::Now()
+    inline float CTimer::Now()
     {
         m_currentTime = platform::GetPerformanceCounter() * g_Frequency;
         return m_currentTime;
     }
 
-    inline double CTimer::Update()
+    inline float CTimer::Update()
     {
-        double elapsed = m_currentTime - m_startTime;
+        float elapsed = m_currentTime - m_startTime;
         m_startTime = m_currentTime;
         return elapsed;
     }
 
-    double CTimer::Start()
+    float CTimer::Start()
     {
         m_startTime = platform::GetPerformanceCounter() * g_Frequency;
         return m_startTime;
     }
 
-    double CTimer::Elapsed()
+    float CTimer::Elapsed()
     {
         Now();
         return Update();

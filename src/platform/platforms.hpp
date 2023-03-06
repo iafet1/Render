@@ -40,10 +40,10 @@ namespace avm::platform {
     void *GetProcAddr(void *handle, const char *nameProc);
 
     // получить частоту производительности в секунду
-    double GetPerformanceFrequency();
+    float GetPerformanceFrequency();
 
     // получить текущее значение счетчика производительности
-    double GetPerformanceCounter();
+    float GetPerformanceCounter();
 
     // приостанавливает выполнение текущего потока до истечения времени ожидания
     void Sleep(uint32_t ms);
