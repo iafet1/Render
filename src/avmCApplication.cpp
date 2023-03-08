@@ -6,7 +6,7 @@
 #include "platform/platforms.hpp"
 #include "avmCLog.hpp"
 #include "avmCTimer.hpp"
-#include "avmCGxDevice.hpp"
+#include "avmCRender.hpp"
 
 #include "avmCApplication.hpp"
 #include "avmEvent.hpp"
@@ -88,10 +88,13 @@ void avm::CApplication::Run()
         Update(m_deltaTime);
 
         // TODO: отрисовка
-        Render();
+        Render(m_deltaTime);
 
         // TODO: обработать композицию
         Compose();
+
+        // представить изображение на экран
+        m_render->Present(m_deltaTime);
 
         // обработать пришедшие сообщения окна
         getMessageWindow();
@@ -113,8 +116,9 @@ void avm::CApplication::FixedUpdate()
 {
 }
 
-void avm::CApplication::Render()
+void avm::CApplication::Render(float dt)
 {
+    m_render->Render(dt);
 }
 
 void avm::CApplication::Compose()
@@ -128,8 +132,9 @@ void avm::CApplication::initialization()
     // создание системы ввода
     m_input = new CInput;
 
-    // создание графического устройства
-    m_gxDevice = new graphics::CGxDevice;
+    // создание рендера (отрисовщика)
+    GxDeviceType type = GxDeviceType::VULKAN; // TODO: перенести в настройки приложения
+    m_render = new CRender(type);
 
     // создание основного окна приложения
     windowCreate(WIN_WIDTH, WIN_HEIGHT);
@@ -174,11 +179,11 @@ void avm::CApplication::shutdown()
     // отмена обработчика комманды QUIT
     command::UnregisterHandler(command::Commands::COMMAND_QUIT, this);
 
-    // удаление графического устройства
-    if (m_gxDevice != nullptr)
+    // удаление рендера
+    if (m_render != nullptr)
     {
-        delete m_gxDevice;
-        m_gxDevice = nullptr;
+        delete m_render;
+        m_render = nullptr;
     }
 
     // удаление графического устройства

@@ -6,7 +6,7 @@
 
 #include "stdafx.hpp"
 #include "platform/platforms.hpp"
-#include "avmCGxDevice.hpp"
+//#include "avmCGxVulkan.hpp"
 
 namespace avm {
 
@@ -43,7 +43,7 @@ namespace avm {
         void FixedUpdate();
 
         //
-        void Render();
+        void Render(float dt);
 
         //
         void Compose(/*wi::graphics::CommandList cmd*/);
@@ -81,7 +81,7 @@ namespace avm {
         CRender *m_render{nullptr};
 
         // графическое устройство
-        graphics::CGxDevice *m_gxDevice{nullptr};
+        //graphics::CGxVulkan *m_gxDevice{nullptr};
 
         // приложение
         const char *m_name{nullptr}; // имя программы
@@ -95,7 +95,7 @@ namespace avm {
         bool m_isWindowActive{true};  // окно активно?
         bool m_exit{false};           // флаг завершения приложения
         bool m_frameSkip{true};       // желаемое поведение цикла FixedUpdate() (по умолчанию = true)
-        bool m_frameRateLock{false}; //
+        bool m_frameRateLock{false};  // если true, то фиксированная частота кадров, равная 'm_targetFrameRate'
 
         // окно
         platform::WindowDesc m_window; // свойства окна
