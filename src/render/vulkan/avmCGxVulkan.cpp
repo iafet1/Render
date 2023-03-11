@@ -2,10 +2,10 @@
 // avmCGxVulkan.cpp
 //
 
-#include "stdafx.hpp"
-#include "avmCLog.hpp"
-#include "platform/platforms.hpp"
-#include "avmCGxDevice.hpp"
+#include "../../stdafx.hpp"
+#include "../../avmCLog.hpp"
+#include "../../platform/platforms.hpp"
+#include "../avmCGxDevice.hpp"
 
 #include "avmCGxVulkan.hpp"
 
@@ -99,10 +99,12 @@ namespace avm::graphics {
         LOG_INFO("CGxVulkan::CGxVulkan().");
 
         createInstance();
+        createDevice();
     }
 
     CGxVulkan::~CGxVulkan()
     {
+        destroyDevice();
         destroyInstance();
 
         LOG_INFO("CGxVulkan::~CGxVulkan().");
@@ -266,6 +268,15 @@ namespace avm::graphics {
         }
     }
 
+    void CGxVulkan::createDevice()
+    {
+        m_vkPhysicalDevice = choosePhysicalDevice();
+    }
+
+    void CGxVulkan::destroyDevice()
+    {
+    }
+
     void CGxVulkan::initFunctionsInstance(VkInstance instance)
     {
         #if defined(_LOG) || defined(_DEBUG)
@@ -286,10 +297,25 @@ namespace avm::graphics {
         GetInstanceProcAddr(instance, vkDestroyInstance);
         GetInstanceProcAddr(instance, vkEnumeratePhysicalDevices);
         GetInstanceProcAddr(instance, vkEnumerateDeviceExtensionProperties);
-        GetInstanceProcAddr(instance, vkGetPhysicalDeviceProperties2);
+
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceFeatures);
         GetInstanceProcAddr(instance, vkGetPhysicalDeviceFormatProperties);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceImageFormatProperties);
         GetInstanceProcAddr(instance, vkGetPhysicalDeviceMemoryProperties);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceProperties);
         GetInstanceProcAddr(instance, vkGetPhysicalDeviceQueueFamilyProperties);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceSparseImageFormatProperties);
+
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceExternalBufferProperties);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceExternalFenceProperties);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceExternalSemaphoreProperties);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceFeatures2);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceFormatProperties2);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceImageFormatProperties2);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceMemoryProperties2);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceProperties2);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceQueueFamilyProperties2);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceSparseImageFormatProperties2);
 
         GetInstanceProcAddr(instance, vkCreateDevice);
 
@@ -309,8 +335,125 @@ namespace avm::graphics {
         #endif // platform extenstion
     }
 
-    void CGxVulkan::initFunctionsDevice()
+    void CGxVulkan::initFunctionsDevice(VkDevice device)
     {
+    }
+
+    VkPhysicalDevice CGxVulkan::choosePhysicalDevice()
+    {
+        VkPhysicalDevice gpu {VK_NULL_HANDLE};
+        VkResult result;
+
+        uint32_t deviceCount {0}; // количество физических устройств
+        result = vkEnumeratePhysicalDevices(m_vkInstance, &deviceCount, nullptr);
+        if (deviceCount == 0)
+        {
+            LOG_ERROR("Нет физических устройств GPU, поддерживающих Vulkan.");
+            THROW();
+        }
+
+        VkPhysicalDevice devices[deviceCount]; // массив физических устройств (GPU) Vulkan
+        result = vkEnumeratePhysicalDevices(m_vkInstance, &deviceCount, devices);
+        if (result != VK_SUCCESS)
+        {
+            LOG_ERROR("Ошибка запроса перечня физических устройств. %s.", vkResultToString(result));
+            THROW();
+        }
+
+        VkPhysicalDeviceProperties2 gpuProperties2 = { //  структура, определяющая свойства физического устройства (GPU)
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+        };
+
+        // перебор физических устройств и проверка необходимых свойств
+        for (const auto &dev : devices)
+        {
+            uint32_t extensionCount; // количество расширений устройства
+            result = vkEnumerateDeviceExtensionProperties(dev, nullptr, &extensionCount, nullptr);
+            VkExtensionProperties available_deviceExtensions[extensionCount]; // массив свойств расширений
+            result = vkEnumerateDeviceExtensionProperties(dev, nullptr, &extensionCount, available_deviceExtensions);
+            if (result != VK_SUCCESS)
+            {
+                LOG_DEBUG("Ошибка запроса свойств расширений. %s.", vkResultToString(result));
+                THROW();
+            }
+
+            bool suitable = true; // флаг того, что нужные расширения поддерживаются физическим устройством
+            for (auto &checkExtension : g_DeviceExtension)
+            {
+                bool check = false;
+                for (const auto &ext : available_deviceExtensions)
+                {
+                    if (strcmp(ext.extensionName, checkExtension) == 0)
+                    {
+                        check = true;
+                        break;
+                    }
+                }
+
+                if (!check)
+                {
+                    suitable = false;
+                    break;
+                }
+            }
+
+            if (!suitable)
+                continue;
+
+            // проверка наличия семейств очередей с поддержкой графики и представления
+            uint32_t queueFamilyCount {0};
+            vkGetPhysicalDeviceQueueFamilyProperties(dev, &queueFamilyCount, nullptr);
+            VkQueueFamilyProperties queueFamiliesProp[queueFamilyCount];
+            vkGetPhysicalDeviceQueueFamilyProperties(dev, &queueFamilyCount, queueFamiliesProp);
+
+            bool supportGraphic {false};
+            bool supportPresent {false};
+            for (uint32_t index = 0; index < queueFamilyCount; ++index)
+            {
+                if (queueFamiliesProp[index].queueFlags & VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT) {
+                    supportGraphic = true;
+                }
+
+                supportPresent = checkPresentationSupport(dev, index);
+                if (supportGraphic && supportPresent) {
+                    break;
+                }
+            }
+
+            if (!supportGraphic && !supportPresent)
+                continue;
+
+            vkGetPhysicalDeviceProperties2(dev, &gpuProperties2); // запрос свойств GPU
+
+            bool discrete = (gpuProperties2.properties.deviceType == VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
+            if (discrete || gpu == VK_NULL_HANDLE)
+            {
+                gpu = dev;
+                if (discrete) {
+                    LOG_DEBUG("Найден дискретный GPU.");
+                    break; // если это дискретный GPU, отдайем ему предпочтение и дальше не ищем
+                }
+            }
+        }
+
+        if (gpu == VK_NULL_HANDLE) {
+            LOG_ERROR("Не могу найти подходящее физическое устройство GPU.");
+            THROW();
+        }
+
+        LOG_INFO("Необходимое физическое устройство GPU найдено.");
+        return gpu;
+    }
+
+    bool CGxVulkan::checkPresentationSupport(VkPhysicalDevice gpu, uint32_t queueFamilyIndex)
+    {
+        #if defined(VK_USE_PLATFORM_WIN32_KHR)
+            return (bool)(vkGetPhysicalDeviceWin32PresentationSupportKHR(gpu, queueFamilyIndex));
+        #else
+            #error "Пока другие платформы не поддерживаются"
+        #endif
+
+        return false;
     }
 
     const char *CGxVulkan::vkResultToString(VkResult result)

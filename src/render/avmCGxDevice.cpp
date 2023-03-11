@@ -2,8 +2,8 @@
 // avmCGxDevice.cpp
 //
 
-#include "stdafx.hpp"
-#include "avmCLog.hpp"
+#include "../stdafx.hpp"
+#include "../avmCLog.hpp"
 
 #include "avmCGxDevice.hpp"
 

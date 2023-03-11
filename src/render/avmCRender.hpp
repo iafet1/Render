@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "stdafx.hpp"
+#include "../stdafx.hpp"
 #include "avmCGxDevice.hpp"
 
 

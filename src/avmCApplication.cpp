@@ -6,7 +6,7 @@
 #include "platform/platforms.hpp"
 #include "avmCLog.hpp"
 #include "avmCTimer.hpp"
-#include "avmCRender.hpp"
+#include "render/avmCRender.hpp"
 
 #include "avmCApplication.hpp"
 #include "avmEvent.hpp"

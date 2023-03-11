@@ -12,6 +12,8 @@ add_compile_definitions(_LOG)
 include_directories(
     ./src/
     ./src/shaders/
+    ./src/platform/
+    ./src/render/
     $ENV{VULKAN_SDK}/Include/
 )
 

@@ -2,11 +2,11 @@
 // avmCRender.cpp
 //
 
-#include "stdafx.hpp"
-#include "avmCLog.hpp"
+#include "../stdafx.hpp"
+#include "../avmCLog.hpp"
 
 #include "avmCRender.hpp"
-#include "avmCGxVulkan.hpp"
+#include "vulkan/avmCGxVulkan.hpp"
 
 constexpr char FILE_NAME[] = "avmCRender.cpp";
 

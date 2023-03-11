@@ -25,11 +25,26 @@ DECLARE_VK(vkCreateInstance);                       // создает новый
 DECLARE_VK(vkDestroyInstance);                    // уничтожить экземпляр Vulkan
 DECLARE_VK(vkEnumeratePhysicalDevices);           // перечисляет физические устройства, доступные экземпляру Vulkan
 DECLARE_VK(vkEnumerateDeviceExtensionProperties); // перечисляет расширения физические устройства
-DECLARE_VK(vkGetPhysicalDeviceProperties2);       // возвращает свойства физического устройства
-DECLARE_VK(vkGetPhysicalDeviceFormatProperties);  // перечисляет возможности формата физического устройства
-DECLARE_VK(vkGetPhysicalDeviceMemoryProperties);  // сообщает информацию о памяти для указанного физического устройства
 
-DECLARE_VK(vkGetPhysicalDeviceQueueFamilyProperties); // возвращает массив свойств очередей указанного физического устройства
+DECLARE_VK(vkGetPhysicalDeviceFeatures);
+DECLARE_VK(vkGetPhysicalDeviceFormatProperties);
+DECLARE_VK(vkGetPhysicalDeviceImageFormatProperties);
+DECLARE_VK(vkGetPhysicalDeviceMemoryProperties);
+DECLARE_VK(vkGetPhysicalDeviceProperties);
+DECLARE_VK(vkGetPhysicalDeviceQueueFamilyProperties);
+DECLARE_VK(vkGetPhysicalDeviceSparseImageFormatProperties);
+
+DECLARE_VK(vkGetPhysicalDeviceExternalBufferProperties);
+DECLARE_VK(vkGetPhysicalDeviceExternalFenceProperties);
+DECLARE_VK(vkGetPhysicalDeviceExternalSemaphoreProperties);
+DECLARE_VK(vkGetPhysicalDeviceFeatures2);
+DECLARE_VK(vkGetPhysicalDeviceFormatProperties2);
+DECLARE_VK(vkGetPhysicalDeviceImageFormatProperties2);
+DECLARE_VK(vkGetPhysicalDeviceMemoryProperties2);
+DECLARE_VK(vkGetPhysicalDeviceProperties2);
+DECLARE_VK(vkGetPhysicalDeviceQueueFamilyProperties2);
+DECLARE_VK(vkGetPhysicalDeviceSparseImageFormatProperties2);
+
 
 DECLARE_VK(vkCreateDevice); // создает логическое устройство Vulkan
 
