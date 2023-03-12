@@ -12,10 +12,10 @@
 constexpr char FILE_NAME[] = "avmCGxVulkan.cpp";
 
 #if defined(_WIN32) || defined(WIN32)
-    #define VULKAN_LIB_NAME "vulkan-1.dll"
+#define VULKAN_LIB_NAME "vulkan-1.dll"
 #else
-    #error "Платформа пока не поддерживается"
-    #define VULKAN_LIB_NAME 
+#error "Платформа пока не поддерживается"
+#define VULKAN_LIB_NAME
 #endif
 
 // запрос функций экземпляра Vulkan'a
@@ -36,7 +36,8 @@ constexpr char FILE_NAME[] = "avmCGxVulkan.cpp";
         THROW();                                                   \
     }
 
-namespace avm::graphics {
+namespace avm::graphics
+{
 
     // список требуемых расширений экземпляра Vulkan
     const char *g_InstanceExtensions[] = {
@@ -45,7 +46,7 @@ namespace avm::graphics {
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
         VK_KHR_WIN32_SURFACE_EXTENSION_NAME, // расширения поверхности WIN32 в Vulkan
 #else
-        #error "Not support"
+#error "Not support"
 #endif // platform extenstion
 
 #if defined(_LOG) || defined(_DEBUG)
@@ -68,10 +69,10 @@ namespace avm::graphics {
     // VK_EXT_debug_utils ( VK_EXT_DEBUG_UTILS_EXTENSION_NAME ) — расширение экземпляра
 
     VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
-        VkDebugUtilsMessageTypeFlagsEXT             messageType,
-        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-        void*                                       pUserData)
+        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+        void *pUserData)
     {
         switch (messageSeverity)
         {
@@ -130,7 +131,8 @@ namespace avm::graphics {
     {
         // загрузка библиотеки Vulkan
         m_libVulkan = platform::OpenLibrary(VULKAN_LIB_NAME);
-        if (nullptr == m_libVulkan) {
+        if (nullptr == m_libVulkan)
+        {
             LOG_ERROR("Не могу загрузить библиотеку Vulkan'a.");
             THROW();
         }
@@ -228,29 +230,29 @@ namespace avm::graphics {
         // иницилизация функций Vulkan'a, требующих действительного дескриптора экземпляра
         initFunctionsInstance(m_vkInstance);
 
-        #if defined(_LOG) || defined(_DEBUG)
-            // создание мессенджера отладки
-            result = vkCreateDebugUtilsMessengerEXT(m_vkInstance, &dbgMessengerCreateInfo, m_vkAllocator, &m_dbg_messenger);
-            if (VK_SUCCESS != result)
-            {
-                LOG_ERROR("Мессенджер отладки не создан.");
-                THROW();
-            }
-        #endif // _LOG || _DEBUG
+#if defined(_LOG) || defined(_DEBUG)
+        // создание мессенджера отладки
+        result = vkCreateDebugUtilsMessengerEXT(m_vkInstance, &dbgMessengerCreateInfo, m_vkAllocator, &m_dbg_messenger);
+        if (VK_SUCCESS != result)
+        {
+            LOG_ERROR("Мессенджер отладки не создан.");
+            THROW();
+        }
+#endif // _LOG || _DEBUG
     }
 
     void CGxVulkan::destroyInstance()
     {
 
-        #if defined(_LOG) || defined(_DEBUG)
-            // уничтожение мессенджера отладки
-            if (m_dbg_messenger != VK_NULL_HANDLE && vkDestroyDebugUtilsMessengerEXT)
-            {
-                vkDestroyDebugUtilsMessengerEXT(m_vkInstance, m_dbg_messenger, m_vkAllocator);
-                m_dbg_messenger = nullptr;
-                LOG_INFO("Мессенджер отладки уничтожен.");
-            }
-        #endif // _DEBUG
+#if defined(_LOG) || defined(_DEBUG)
+        // уничтожение мессенджера отладки
+        if (m_dbg_messenger != VK_NULL_HANDLE && vkDestroyDebugUtilsMessengerEXT)
+        {
+            vkDestroyDebugUtilsMessengerEXT(m_vkInstance, m_dbg_messenger, m_vkAllocator);
+            m_dbg_messenger = nullptr;
+            LOG_INFO("Мессенджер отладки уничтожен.");
+        }
+#endif // _DEBUG
 
         // уничтожить экземпляр Vulkan'a
         if (m_vkInstance != VK_NULL_HANDLE && vkDestroyInstance)
@@ -259,7 +261,7 @@ namespace avm::graphics {
             m_vkInstance = VK_NULL_HANDLE;
             LOG_INFO("Экземпляр Vulkan'а уничтожен.");
         }
-        
+
         // освобождаем библиотеку Vulkan
         if (m_libVulkan != nullptr)
         {
@@ -270,29 +272,109 @@ namespace avm::graphics {
 
     void CGxVulkan::createDevice()
     {
+        // поиск подходящего GPU
         m_vkPhysicalDevice = choosePhysicalDevice();
+
+        // создаем и записываем массив информации о очередях
+        uint32_t countQueueInFamily[QueueType::QT_MAX]{};
+        buildQueueInfos(countQueueInFamily);
+
+        // параметры создаваемых очередей
+        const float queuePriority[QueueType::QT_MAX]{1.0f, 1.0f, 1.0f, 1.0f}; // приоритеты очередей
+        VkDeviceQueueCreateInfo queueCreateInfo = {
+            // структура, определяющая параметры вновь созданной очереди устройств
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, // является типом этой структуры
+            .pNext = nullptr,                                    // должен быть NULL или указателем на действительный экземпляр VkDeviceQueueGlobalPriorityCreateInfoKHR
+            .flags = 0,                                          // битовая маска, указывающая поведение очередей. должен быть допустимой комбинацией значений VkDeviceQueueCreateFlagBits
+            .pQueuePriorities = queuePriority                    // указатель на массив нормализованных значений с плавающей запятой, указывающий приоритеты работы
+        };
+
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos; // массив информации создания очередей
+        for (int i = 0; i < QueueType::QT_MAX; ++i)
+        {
+            if (countQueueInFamily[i] > 0)
+            {
+                queueCreateInfo.queueFamilyIndex = m_vkQueueFamily[i]; // индекс семейства очередей
+                queueCreateInfo.queueCount = countQueueInFamily[i];    // количество очередей для данного семейства
+
+                queueCreateInfos.push_back(queueCreateInfo); // запись в массив информации создания очереди
+            }
+        }
+
+        // TODO: перенести в настройки и поиск GPU
+        // детализированные особенности, поддерживаемые устройством
+        VkPhysicalDeviceFeatures features = {}; // структура, описывающая детализированные функции, которые могут поддерживаться реализацией
+        features.shaderClipDistance = VK_TRUE;  // указывает, поддерживаются ли расстояния отсечения в коде шейдера
+
+        // создаем логическое устройство
+        VkDeviceCreateInfo createInfo = {
+            // структура, определяющая параметры только что созданного устройства
+            .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,             // является типом этой структуры
+            .pNext = nullptr,                                          // указатель на структуру, расширяющую эту структуру или nullptr
+            .flags = 0,                                                // зарезервировано для использования в будущем, должен быть 0
+            .queueCreateInfoCount = (uint32_t)queueCreateInfos.size(), // размер массива pQueueCreateInfos
+            .pQueueCreateInfos = queueCreateInfos.data(),              // является указателем на массив структур VkDeviceQueueCreateInfo , описывающих очереди, которые требуется создать вместе с логическим устройством
+            .enabledLayerCount = 0,                                    // устарело и игнорируется, должно быть 0
+            .ppEnabledLayerNames = nullptr,                            // устарело и игнорируется, должно быть nullptr
+            .enabledExtensionCount = ARRAYSIZE(g_DeviceExtension),     // количество расширений устройств, которые необходимо включить
+            .ppEnabledExtensionNames = g_DeviceExtension,              // массив строк UTF-8 с завершающим нулем, содержащих имена расширений, которые необходимо включить для созданного устройства
+            .pEnabledFeatures = &features,                             // указатель на структуру VkPhysicalDeviceFeatures, содержащую логические индикаторы всех функций, которые необходимо включить
+        };
+
+        VkResult result = vkCreateDevice(m_vkPhysicalDevice, &createInfo, m_vkAllocator, &m_vkDevice);
+        if (result != VK_SUCCESS)
+        {
+            LOG_ERROR("Не могу создать логическое устройство Vulkan.");
+            LOG_ERROR("%s", vkResultToString(result));
+            THROW();
+        }
+        LOG_INFO("Логическое устройство Vulkan создано.");
+
+        // иницилизация функций Vulkan'a, требующих действительного дескриптора логического устройства
+        initFunctionsDevice(m_vkDevice);
+
+        // запрос очередей из логического устройства
+        for (int i = 0; i < QueueType::QT_MAX; ++i) {
+            vkGetDeviceQueue(m_vkDevice, m_vkQueueFamily[i], m_vkQueueIndex[i], &m_vkQueue[i]);
+        }
+
     }
 
     void CGxVulkan::destroyDevice()
     {
+        // уничтожаем логическое устройство Vulkan
+        if (m_vkDevice != VK_NULL_HANDLE)
+        {
+            vkDeviceWaitIdle(m_vkDevice);
+
+            vkDestroyDevice(m_vkDevice, m_vkAllocator);
+            m_vkDevice = VK_NULL_HANDLE;
+            m_vkPhysicalDevice = VK_NULL_HANDLE;
+            for (int i = 0; i < QueueType::QT_MAX; ++i) {
+                m_vkQueueFamily[i] = VK_QUEUE_FAMILY_IGNORED;
+                m_vkQueueIndex[i] = 0;
+                m_vkQueue[i] = VK_NULL_HANDLE;
+            }
+            LOG_INFO("Логическое устройство Vulkan уничтожено.");
+        }
     }
 
     void CGxVulkan::initFunctionsInstance(VkInstance instance)
     {
-        #if defined(_LOG) || defined(_DEBUG)
-            // VK_EXT_debug_utils ( VK_EXT_DEBUG_UTILS_EXTENSION_NAME ) — расширение экземпляра
-            GetInstanceProcAddr(instance, vkCreateDebugUtilsMessengerEXT);
-            GetInstanceProcAddr(instance, vkDestroyDebugUtilsMessengerEXT);
-            GetInstanceProcAddr(instance, vkSetDebugUtilsObjectNameEXT);
-            GetInstanceProcAddr(instance, vkSetDebugUtilsObjectTagEXT);
-            GetInstanceProcAddr(instance, vkSubmitDebugUtilsMessageEXT);
-            GetInstanceProcAddr(instance, vkQueueBeginDebugUtilsLabelEXT);
-            GetInstanceProcAddr(instance, vkQueueEndDebugUtilsLabelEXT);
-            GetInstanceProcAddr(instance, vkQueueInsertDebugUtilsLabelEXT);
-            GetInstanceProcAddr(instance, vkCmdBeginDebugUtilsLabelEXT);
-            GetInstanceProcAddr(instance, vkCmdEndDebugUtilsLabelEXT);
-            GetInstanceProcAddr(instance, vkCmdInsertDebugUtilsLabelEXT);
-        #endif // _LOG || _DEBUG
+#if defined(_LOG) || defined(_DEBUG)
+        // VK_EXT_debug_utils ( VK_EXT_DEBUG_UTILS_EXTENSION_NAME ) — расширение экземпляра
+        GetInstanceProcAddr(instance, vkCreateDebugUtilsMessengerEXT);
+        GetInstanceProcAddr(instance, vkDestroyDebugUtilsMessengerEXT);
+        GetInstanceProcAddr(instance, vkSetDebugUtilsObjectNameEXT);
+        GetInstanceProcAddr(instance, vkSetDebugUtilsObjectTagEXT);
+        GetInstanceProcAddr(instance, vkSubmitDebugUtilsMessageEXT);
+        GetInstanceProcAddr(instance, vkQueueBeginDebugUtilsLabelEXT);
+        GetInstanceProcAddr(instance, vkQueueEndDebugUtilsLabelEXT);
+        GetInstanceProcAddr(instance, vkQueueInsertDebugUtilsLabelEXT);
+        GetInstanceProcAddr(instance, vkCmdBeginDebugUtilsLabelEXT);
+        GetInstanceProcAddr(instance, vkCmdEndDebugUtilsLabelEXT);
+        GetInstanceProcAddr(instance, vkCmdInsertDebugUtilsLabelEXT);
+#endif // _LOG || _DEBUG
 
         GetInstanceProcAddr(instance, vkDestroyInstance);
         GetInstanceProcAddr(instance, vkEnumeratePhysicalDevices);
@@ -326,25 +408,47 @@ namespace avm::graphics {
         GetInstanceProcAddr(instance, vkGetPhysicalDeviceSurfacePresentModesKHR);
         GetInstanceProcAddr(instance, vkGetPhysicalDeviceSurfaceSupportKHR);
 
-        #if defined(VK_USE_PLATFORM_WIN32_KHR)
-            // VK_KHR_win32_surface ( VK_KHR_WIN32_SURFACE_EXTENSION_NAME ) - расширение экземпляра
-            GetInstanceProcAddr(instance, vkCreateWin32SurfaceKHR);
-            GetInstanceProcAddr(instance, vkGetPhysicalDeviceWin32PresentationSupportKHR);
-        #else
-            #error "Not support"
-        #endif // platform extenstion
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+        // VK_KHR_win32_surface ( VK_KHR_WIN32_SURFACE_EXTENSION_NAME ) - расширение экземпляра
+        GetInstanceProcAddr(instance, vkCreateWin32SurfaceKHR);
+        GetInstanceProcAddr(instance, vkGetPhysicalDeviceWin32PresentationSupportKHR);
+#else
+#error "Not support"
+#endif // platform extenstion
     }
 
     void CGxVulkan::initFunctionsDevice(VkDevice device)
     {
+        GetDeviceProcAddr(device, vkDestroyDevice);
+        GetDeviceProcAddr(device, vkDeviceWaitIdle);
+        GetDeviceProcAddr(device, vkGetDeviceQueue);
+
+        GetDeviceProcAddr(device, vkCreateImageView);
+        GetDeviceProcAddr(device, vkDestroyImageView);
+        GetDeviceProcAddr(device, vkCreateImage);
+        GetDeviceProcAddr(device, vkDestroyImage);
+
+        GetDeviceProcAddr(device, vkGetImageMemoryRequirements);
+        GetDeviceProcAddr(device, vkAllocateMemory);
+        GetDeviceProcAddr(device, vkFreeMemory);
+        GetDeviceProcAddr(device, vkBindImageMemory);
+
+        // VK_KHR_swapchain - расширение устройства
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        GetDeviceProcAddr(device, vkCreateSwapchainKHR);
+        GetDeviceProcAddr(device, vkDestroySwapchainKHR);
+        GetDeviceProcAddr(device, vkGetSwapchainImagesKHR);
+        GetDeviceProcAddr(device, vkAcquireNextImageKHR);
+        GetDeviceProcAddr(device, vkQueuePresentKHR);
+        GetDeviceProcAddr(device, vkAcquireNextImage2KHR);
     }
 
     VkPhysicalDevice CGxVulkan::choosePhysicalDevice()
     {
-        VkPhysicalDevice gpu {VK_NULL_HANDLE};
+        VkPhysicalDevice gpu{VK_NULL_HANDLE};
         VkResult result;
 
-        uint32_t deviceCount {0}; // количество физических устройств
+        uint32_t deviceCount{0}; // количество физических устройств
         result = vkEnumeratePhysicalDevices(m_vkInstance, &deviceCount, nullptr);
         if (deviceCount == 0)
         {
@@ -360,7 +464,8 @@ namespace avm::graphics {
             THROW();
         }
 
-        VkPhysicalDeviceProperties2 gpuProperties2 = { //  структура, определяющая свойства физического устройства (GPU)
+        VkPhysicalDeviceProperties2 gpuProperties2 = {
+            //  структура, определяющая свойства физического устройства (GPU)
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
         };
 
@@ -401,21 +506,23 @@ namespace avm::graphics {
                 continue;
 
             // проверка наличия семейств очередей с поддержкой графики и представления
-            uint32_t queueFamilyCount {0};
+            uint32_t queueFamilyCount{0};
             vkGetPhysicalDeviceQueueFamilyProperties(dev, &queueFamilyCount, nullptr);
             VkQueueFamilyProperties queueFamiliesProp[queueFamilyCount];
             vkGetPhysicalDeviceQueueFamilyProperties(dev, &queueFamilyCount, queueFamiliesProp);
 
-            bool supportGraphic {false};
-            bool supportPresent {false};
+            bool supportGraphic{false};
+            bool supportPresent{false};
             for (uint32_t index = 0; index < queueFamilyCount; ++index)
             {
-                if (queueFamiliesProp[index].queueFlags & VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT) {
+                if (queueFamiliesProp[index].queueFlags & VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT)
+                {
                     supportGraphic = true;
                 }
 
                 supportPresent = checkPresentationSupport(dev, index);
-                if (supportGraphic && supportPresent) {
+                if (supportGraphic && supportPresent)
+                {
                     break;
                 }
             }
@@ -429,14 +536,16 @@ namespace avm::graphics {
             if (discrete || gpu == VK_NULL_HANDLE)
             {
                 gpu = dev;
-                if (discrete) {
+                if (discrete)
+                {
                     LOG_DEBUG("Найден дискретный GPU.");
                     break; // если это дискретный GPU, отдайем ему предпочтение и дальше не ищем
                 }
             }
         }
 
-        if (gpu == VK_NULL_HANDLE) {
+        if (gpu == VK_NULL_HANDLE)
+        {
             LOG_ERROR("Не могу найти подходящее физическое устройство GPU.");
             THROW();
         }
@@ -447,13 +556,145 @@ namespace avm::graphics {
 
     bool CGxVulkan::checkPresentationSupport(VkPhysicalDevice gpu, uint32_t queueFamilyIndex)
     {
+        VkBool32 ret{VK_FALSE};
+
         #if defined(VK_USE_PLATFORM_WIN32_KHR)
-            return (bool)(vkGetPhysicalDeviceWin32PresentationSupportKHR(gpu, queueFamilyIndex));
+            ret = vkGetPhysicalDeviceWin32PresentationSupportKHR(gpu, queueFamilyIndex);
         #else
             #error "Пока другие платформы не поддерживаются"
         #endif
 
+        if (ret)
+        {
+            m_vkQueueFamily[QueueType::QT_PRESENT] = queueFamilyIndex;
+//            m_vkPresentFamily = queueFamilyIndex;
+            return true;
+        }
+
         return false;
+    }
+
+    void CGxVulkan::buildQueueInfos(uint32_t* countQueueInFamily)
+    {
+        // получение, поддерживаемых семейств очередей
+        uint32_t queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(m_vkPhysicalDevice, &queueFamilyCount, nullptr);
+        m_vkQueueFamiliesProp.resize(queueFamilyCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(m_vkPhysicalDevice, &queueFamilyCount, m_vkQueueFamiliesProp.data());
+
+        // запрос индексов семейств очередей
+        uint32_t familyIndex = 0;
+        for (const auto &queueFamily : m_vkQueueFamiliesProp)
+        {
+            if (m_vkQueueFamily[QT_GRAPHICS] == VK_QUEUE_FAMILY_IGNORED &&
+                queueFamily.queueCount > 0 &&
+                queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            {
+                m_vkQueueFamily[QueueType::QT_GRAPHICS] = familyIndex;
+//                m_vkGraphicsFamily = familyIndex;
+            }
+
+            if (m_vkQueueFamily[QT_COMPUTE] == VK_QUEUE_FAMILY_IGNORED &&
+                queueFamily.queueCount > 0 &&
+                queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)
+            {
+                m_vkQueueFamily[QueueType::QT_COMPUTE] = familyIndex;
+//                m_vkComputeFamily = familyIndex;
+            }
+
+            if (m_vkQueueFamily[QT_TRANSFER] == VK_QUEUE_FAMILY_IGNORED &&
+                queueFamily.queueCount > 0 &&
+                queueFamily.queueFlags & VK_QUEUE_TRANSFER_BIT)
+            {
+                m_vkQueueFamily[QueueType::QT_TRANSFER] = familyIndex;
+//                m_vkTransferFamily = familyIndex;
+            }
+
+            ++familyIndex;
+        }
+
+        // теперь пробуем найти выделенные семейства очередей вычислений и передачи
+        familyIndex = 0;
+        for (const auto &queueFamily : m_vkQueueFamiliesProp)
+        {
+            if (queueFamily.queueCount > 0 &&
+                queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT &&
+                !(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT))
+            {
+                m_vkQueueFamily[QueueType::QT_COMPUTE] = familyIndex;
+//                m_vkComputeFamily = familyIndex;
+            }
+
+            if (m_vkQueueFamily[QT_TRANSFER] == m_vkQueueFamily[QT_COMPUTE] &&
+                queueFamily.queueCount > 0 &&
+                queueFamily.queueFlags & VK_QUEUE_TRANSFER_BIT &&
+                !(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
+                !(queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT))
+            {
+                m_vkQueueFamily[QueueType::QT_TRANSFER] = familyIndex;
+//                m_vkTransferFamily = familyIndex;
+            }
+
+            ++familyIndex;
+        }
+
+
+        // индексы очередей для получения из запроса у логического устройства
+        {
+            ++countQueueInFamily[QT_GRAPHICS];
+
+            if (m_vkQueueFamily[QT_COMPUTE] == m_vkQueueFamily[QT_GRAPHICS] &&
+                m_vkQueueFamiliesProp[m_vkQueueFamily[QT_GRAPHICS]].queueCount > countQueueInFamily[QT_GRAPHICS])
+            {
+                m_vkQueueIndex[QT_COMPUTE] = countQueueInFamily[QT_GRAPHICS];
+                ++countQueueInFamily[QT_GRAPHICS];
+            }
+            else
+            {
+                ++countQueueInFamily[QT_COMPUTE];
+            }
+
+            if (m_vkQueueFamily[QT_TRANSFER] == m_vkQueueFamily[QT_GRAPHICS] &&
+                m_vkQueueFamiliesProp[m_vkQueueFamily[QT_GRAPHICS]].queueCount > countQueueInFamily[QT_GRAPHICS])
+            {
+                m_vkQueueIndex[QT_TRANSFER] = countQueueInFamily[QT_GRAPHICS];
+                ++countQueueInFamily[QT_GRAPHICS];
+            }
+            else if (m_vkQueueFamily[QT_TRANSFER] == m_vkQueueFamily[QT_COMPUTE] &&
+                     m_vkQueueFamiliesProp[m_vkQueueFamily[QT_COMPUTE]].queueCount > countQueueInFamily[QT_COMPUTE])
+            {
+                m_vkQueueIndex[QT_TRANSFER] = countQueueInFamily[QT_COMPUTE];
+                ++countQueueInFamily[QT_COMPUTE];
+            }
+            else
+            {
+                ++countQueueInFamily[QT_TRANSFER];
+            }
+
+            if (m_vkQueueFamily[QT_PRESENT] == m_vkQueueFamily[QT_GRAPHICS] &&
+                m_vkQueueFamiliesProp[m_vkQueueFamily[QT_GRAPHICS]].queueCount > countQueueInFamily[QT_GRAPHICS])
+            {
+                m_vkQueueIndex[QT_PRESENT] = countQueueInFamily[QT_GRAPHICS];
+                ++countQueueInFamily[QT_GRAPHICS];
+            }
+            else if (m_vkQueueFamily[QT_PRESENT] == m_vkQueueFamily[QT_COMPUTE] &&
+                     m_vkQueueFamiliesProp[m_vkQueueFamily[QT_COMPUTE]].queueCount > countQueueInFamily[QT_COMPUTE])
+            {
+                m_vkQueueIndex[QT_PRESENT] = countQueueInFamily[QT_COMPUTE];
+                ++countQueueInFamily[QT_COMPUTE];
+            }
+            else if (m_vkQueueFamily[QT_PRESENT] == m_vkQueueFamily[QT_TRANSFER] &&
+                     m_vkQueueFamiliesProp[m_vkQueueFamily[QT_TRANSFER]].queueCount > countQueueInFamily[QT_TRANSFER])
+            {
+                m_vkQueueIndex[QT_PRESENT] = countQueueInFamily[QT_TRANSFER];
+                ++countQueueInFamily[QT_TRANSFER];
+            }
+            else
+            {
+                ++countQueueInFamily[QT_PRESENT];
+            }
+        }
+
     }
 
     const char *CGxVulkan::vkResultToString(VkResult result)

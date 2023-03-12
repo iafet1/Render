@@ -13,6 +13,16 @@
 
 namespace avm::graphics
 {
+    // типы очередей
+    enum QueueType
+    {
+        QT_GRAPHICS = 0, // графическая
+        QT_COMPUTE,      // вычисления
+        QT_TRANSFER,     // передачи
+        QT_PRESENT,      // представления
+
+        QT_MAX
+    };
 
     class CGxVulkan final : public CGxDevice
     {
@@ -52,10 +62,14 @@ namespace avm::graphics
         void initFunctionsInstance(VkInstance instance);
         // иницилизация функций устройства
         void initFunctionsDevice(VkDevice device);
+
         // поиск необходимого GPU
         VkPhysicalDevice choosePhysicalDevice();
         // проверка поддержки представления для поверхности (зависит от платформы)
         bool checkPresentationSupport(VkPhysicalDevice gpu, uint32_t queueFamilyIndex);
+        // сделать информацию очередей для логического устройства
+        void buildQueueInfos(uint32_t* countQueueInFamily);
+
         // трансляция кода возврата функций Vulkan в строку
         const char *vkResultToString(VkResult result);
 
@@ -83,15 +97,11 @@ namespace avm::graphics
         std::vector<uint32_t> m_vkFamilies;                         // индексы семейств очередей
         std::vector<VkQueueFamilyProperties> m_vkQueueFamiliesProp; // массив структур, предоставляющих информацию о семействах очередей
 
-        uint32_t m_vkGraphicsFamily{VK_QUEUE_FAMILY_IGNORED}; // индекс семейства очередей, поддерживающих обработку графики
-        uint32_t m_vkComputeFamily{VK_QUEUE_FAMILY_IGNORED};  // индекс семейства очередей, поддерживающих вычисления
-        uint32_t m_vkTransferFamily{VK_QUEUE_FAMILY_IGNORED}; // индекс семейства очередей, поддерживающих, передачу
-        uint32_t m_vkPresentFamily{VK_QUEUE_FAMILY_IGNORED};  // индекс семейства очередей, поддерживающих, представление
+        uint32_t m_vkQueueFamily[QueueType::QT_MAX]{
+            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
+            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED}; // индекс семейства очередей для данной очереди
+        uint32_t m_vkQueueIndex[QueueType::QT_MAX]{}; // индекс очереди, при запросе у логического устройства
+        VkQueue m_vkQueue[QueueType::QT_MAX]{VK_NULL_HANDLE}; // дескриптор очереди
 
-        VkQueue m_vkGraphicsQueue{VK_NULL_HANDLE}; // очередь обработки графики
-        VkQueue m_vkComputeQueue{VK_NULL_HANDLE};  // очередь вычислений
-        VkQueue m_vkTransferQueue{VK_NULL_HANDLE}; // очередь передачи
-        VkQueue m_vkPresentQueue{VK_NULL_HANDLE};  // очередь представления
-        
     };
 }
