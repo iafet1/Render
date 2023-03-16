@@ -62,4 +62,10 @@ namespace avm {
     {
         return true;
     }
+    bool CRender::SetCanvas(platform::WindowDesc *window)
+    {
+        assert(window != nullptr);
+        m_device->CreateCanvas(window);
+        return true;
+    }
 }

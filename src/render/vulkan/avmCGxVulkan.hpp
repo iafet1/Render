@@ -45,6 +45,9 @@ namespace avm::graphics
         // обработчик события EVENT_APP_RESIZED (изменение размера главного окна приложения)
         static bool OnResized(void *object, union Variant param1, union Variant param2);
 
+        // создание поверхности (холста) для вывода изображения
+        virtual void CreateCanvas(platform::WindowDesc *window);
+
     private:
         // functions
 
@@ -58,6 +61,21 @@ namespace avm::graphics
         // уничтожение устройства Vulkan
         void destroyDevice();
 
+        // создание поверхности Vulkan
+        void createSurface(platform::WindowDesc *window);
+        // уничтожение поверхности Vulkan
+        void destroySurface();
+        // запрос форматов поверхности
+        void getSurfaceFormat();
+        // Запрос размеров и преобразования поверхности
+        void getSurfaceCapabilities();
+        // Запрос и установка режима представления
+        void getSurfacePresentMode();
+        // создание цепочки подкачки
+        void createSwapChain();
+        // уничтожение цепочки подкачки
+        void destroySwapChain();
+        
         // иницилизация функций экземпляра
         void initFunctionsInstance(VkInstance instance);
         // иницилизация функций устройства
@@ -68,7 +86,7 @@ namespace avm::graphics
         // проверка поддержки представления для поверхности (зависит от платформы)
         bool checkPresentationSupport(VkPhysicalDevice gpu, uint32_t queueFamilyIndex);
         // сделать информацию очередей для логического устройства
-        void buildQueueInfos(uint32_t* countQueueInFamily);
+        void buildQueueInfos(uint32_t *countQueueInFamily);
 
         // трансляция кода возврата функций Vulkan в строку
         const char *vkResultToString(VkResult result);
@@ -90,6 +108,7 @@ namespace avm::graphics
         VkAllocationCallbacks *m_vkAllocator{nullptr}; // указатель на пользовательский менеджер памяти Vulkan
         VkInstance m_vkInstance{VK_NULL_HANDLE};       // дескриптор экземпляра Vulkan
 
+
         VkPhysicalDevice m_vkPhysicalDevice{VK_NULL_HANDLE}; // физическое графическое устройство (GPU)
         VkDevice m_vkDevice{VK_NULL_HANDLE};                 // логическое устройство Vulkan
 
@@ -100,8 +119,24 @@ namespace avm::graphics
         uint32_t m_vkQueueFamily[QueueType::QT_MAX]{
             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED}; // индекс семейства очередей для данной очереди
-        uint32_t m_vkQueueIndex[QueueType::QT_MAX]{}; // индекс очереди, при запросе у логического устройства
-        VkQueue m_vkQueue[QueueType::QT_MAX]{VK_NULL_HANDLE}; // дескриптор очереди
+        uint32_t m_vkQueueIndex[QueueType::QT_MAX]{};          // индекс очереди, при запросе у логического устройства
+        VkQueue m_vkQueue[QueueType::QT_MAX]{VK_NULL_HANDLE};  // дескриптор очереди
+        
 
+        // поверхность представления
+        VkSurfaceKHR m_vkSurface{VK_NULL_HANDLE};       // дескриптор поверхности Vulkan
+        
+        // поддерживаемые свойства
+        VkExtent2D m_vkSurfaceResolution;               // размеры поверхности
+        VkColorSpaceKHR m_vkColorSpace;                 // цветовое пространство поверхности
+        VkFormat m_vkColorFormat;                       // цветовой формат поверхности
+        VkPresentModeKHR m_vkPresentationMode;          // режим представления
+        VkSurfaceTransformFlagBitsKHR m_vkPreTransform; // преобразование относительно представления
+
+        // цепочка обмена (буфферизация)
+        VkSwapchainKHR m_vkSwapChain{VK_NULL_HANDLE};         // цепочка обмена(подкачки) изображения
+        uint32_t m_swapchainImageCount{MAX_FRAMES_IN_FLIGHT}; // количество изображений в цепочке обмена
+        VkImage *m_vkSwapchainImages{nullptr};         // массив изображений в цепочке обмена
+        VkImageView *m_vkSwapchainImagesView{nullptr}; // массив представлений изображений цепочки обмена
     };
 }

@@ -345,8 +345,14 @@ namespace avm::graphics
         // уничтожаем логическое устройство Vulkan
         if (m_vkDevice != VK_NULL_HANDLE)
         {
-            vkDeviceWaitIdle(m_vkDevice);
+            vkDeviceWaitIdle(m_vkDevice); // ждем освобождения устройства
 
+            // уничтожить цепочку обмена
+            destroySwapChain();
+            // уничтожить поверхность представления Vulkan
+            destroySurface();
+
+        
             vkDestroyDevice(m_vkDevice, m_vkAllocator);
             m_vkDevice = VK_NULL_HANDLE;
             m_vkPhysicalDevice = VK_NULL_HANDLE;

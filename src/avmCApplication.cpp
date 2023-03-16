@@ -166,6 +166,9 @@ void avm::CApplication::initialization()
                                return false;
                            });
 
+    // установка поверхности (холста) для вывода изображения
+    m_render->SetCanvas(&m_window);
+
     m_initialized = true;
 }
 

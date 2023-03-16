@@ -45,7 +45,9 @@ namespace avm {
 
         // вывод на экран
         bool Present(float dt);
-        
+
+        // установка поверхности (холста) для вывода изображения
+        bool SetCanvas(struct platform::WindowDesc *window);
 
     private:
         // functions
