@@ -51,8 +51,8 @@ namespace avm::graphics
 #error "Not support"
 #endif
 
-        m_vkSurfaceResolution.width = window->width;
-        m_vkSurfaceResolution.height = window->height;
+        m_vkSurfaceSize.width = window->width;
+        m_vkSurfaceSize.height = window->height;
 
         LOG_INFO("Поверхность Vulkan создана.");
     }
@@ -95,7 +95,7 @@ namespace avm::graphics
 
     void CGxVulkan::getSurfaceCapabilities()
     {
-        VkSurfaceCapabilitiesKHR surfaceCapabilities = {0};
+        VkSurfaceCapabilitiesKHR surfaceCapabilities{};
         VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_vkPhysicalDevice, m_vkSurface, &surfaceCapabilities);
         if (VK_SUCCESS != res)
         {
@@ -104,14 +104,15 @@ namespace avm::graphics
         }
 
         VkExtent2D extent = surfaceCapabilities.currentExtent;
-        if (extent.width == -1 || extent.height == -1) {
-            extent = m_vkSurfaceResolution;
+        if (extent.width == -1 || extent.height == -1)
+        {
+            extent = m_vkSurfaceSize;
         }
 
         extent.width = std::clamp(extent.width, surfaceCapabilities.minImageExtent.width, surfaceCapabilities.maxImageExtent.width);
         extent.height = std::clamp(extent.height, surfaceCapabilities.minImageExtent.height, surfaceCapabilities.maxImageExtent.height);
 
-        m_vkSurfaceResolution = extent;
+        m_vkSurfaceSize = extent;
 
         m_vkPreTransform = surfaceCapabilities.currentTransform;
         if (surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
@@ -156,27 +157,39 @@ namespace avm::graphics
         getSurfaceCapabilities();
 
         // создание цепочки обмена
-        VkSwapchainCreateInfoKHR scci = {                            // Структура, определяющая параметры вновь созданного объекта цепочки обмена
+        VkSwapchainCreateInfoKHR scci = {
+            // Структура, определяющая параметры вновь созданного объекта цепочки обмена
             .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR, // тип этой структуры
-            .pNext = nullptr,                                        // NULL или указатель на структуру, расширяющую эту структуру
-            .flags = 0,                                           // битовая маска VkSwapchainCreateFlagBitsKHR, указывающая параметры создания цепочки обмена
-            .surface = m_vkSurface,                               // поверхность, на которой свопчейн будет отображать изображения
-            .minImageCount = m_swapchainImageCount,               // минимальное количество презентабельных изображений, которое необходимо приложению
-            .imageFormat = m_vkColorFormat,                       // значение VkFormat , указывающее формат, в котором будут созданы изображения цепи обмена
-            .imageColorSpace = m_vkColorSpace,                    // значение VkColorSpaceKHR , указывающее, как цепочка обмена интерпретирует данные изображения
-            .imageExtent = m_vkSurfaceResolution,                 // размер (в пикселях) изображений цепи обмена
-            .imageArrayLayers = 1,                                // количество просмотров на многоэкранной/стереоповерхности. Для нестереоскопических 3D-приложений это значение равно 1
-            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |   // битовая маска VkImageUsageFlagBits, описывающая предполагаемое использование (приобретенных) образов цепи обмена
-                            VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-            .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,       // режим совместного использования, используемый для изображений цепочки обмена
-            .queueFamilyIndexCount = 0,                          // количество семейств очередей, имеющих доступ к образу(ам) цепочки обмена, когда imageSharingMode равно VK_SHARING_MODE_CONCURRENT
-            .pQueueFamilyIndices = nullptr,                      // указатель на массив индексов семейства очередей, имеющих доступ к изображениям цепочки обмена
-            .preTransform = m_vkPreTransform,                    // значение VkSurfaceTransformFlagBitsKHR , описывающие преобразование относительно естественной ориентации механизма представления, примененное к содержимому изображения до представления
-            .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR, // значение VkCompositeAlphaFlagBitsKHR, указывающим режим альфа-компоновки, который следует использовать
+            .pNext = nullptr,                                     // NULL или указатель на структуру, расширяющую эту структуру
+            .flags = 0,                                           // параметры создания цепочки обмена
+            .surface = m_vkSurface,                               // поверхность, на которой цепочка обмена будет отображать изображения
+            .minImageCount = m_swapchainImageCount,               // минимальное количество изображений, которое необходимо приложению
+            .imageFormat = m_vkColorFormat,                       // указывающее формат, в котором будут созданы изображения цепи обмена
+            .imageColorSpace = m_vkColorSpace,                    // указывающее, как цепочка обмена интерпретирует данные изображения
+            .imageExtent = m_vkSurfaceSize,                       // размер (в пикселях) изображений цепи обмена
+            .imageArrayLayers = 1,                                // количество просмотров на многоэкранной/стереоповерхности, для обычной - 1
+            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |   // предполагаемое использование (приобретенных) образов цепи обмена
+                          VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+            .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,       // эсклюзивный режим
+            .queueFamilyIndexCount = 0,                          // количество семейств очередей
+            .pQueueFamilyIndices = nullptr,                      // указатель на массив индексов семейства очередей
+            .preTransform = m_vkPreTransform,                    // преобразование относительно естественной ориентации представления
+            .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR, // режим альфа-компоновки
             .presentMode = m_vkPresentationMode,                 // режим представления, который будет использовать цепочка обмена
-            .clipped = VK_TRUE,                                  // указывает, разрешено ли реализации Vulkan отбрасывать операции рендеринга, затрагивающие невидимые области поверхности
-            .oldSwapchain = VK_NULL_HANDLE                      //  VK_NULL_HANDLE или существующая незавершенная цепочка подкачки, которая в настоящее время связана с поверхностью
+            .clipped = VK_TRUE,                                  // разрешение отбрасывать операции рендеринга, затрагивающие невидимые области поверхности
+            // TODO: потом реализовать использование старой цепочки обмена
+            .oldSwapchain = VK_NULL_HANDLE //  VK_NULL_HANDLE или существующая незавершенная цепочка подкачки, которая в настоящее время связана с поверхностью
         };
+
+        if (m_vkQueueFamily[QT_GRAPHICS] != m_vkQueueFamily[QT_PRESENT])
+        {
+            uint32_t queueFamilyIndices[] = {
+                m_vkQueueFamily[QT_GRAPHICS], m_vkQueueFamily[QT_PRESENT]
+            };
+            scci.imageSharingMode = VK_SHARING_MODE_CONCURRENT;         // доступ из нескольких семейств очередей
+            scci.queueFamilyIndexCount = ARRAYSIZE(queueFamilyIndices); // количество семейств очередей
+            scci.pQueueFamilyIndices = queueFamilyIndices;              // указатель на массив индексов семейства очередей
+        }
 
         res = vkCreateSwapchainKHR(m_vkDevice, &scci, NULL, &m_vkSwapChain);
         if (VK_SUCCESS != res)
@@ -203,26 +216,24 @@ namespace avm::graphics
             THROW();
         }
 
-        VkImageViewCreateInfo ivci = {                         // Структура, определяющая параметры только что созданного изображения
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, // тип этой структуры
-            .pNext = nullptr,                                  // NULL или указатель на структуру, расширяющую эту структуру
-            .flags = 0,                                        // битовая маска VkImageViewCreateFlagBits, описывающая дополнительные параметры просмотра изображения
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,                 // является значением VkImageViewType , указывающим тип представления изображения
-            .format = m_vkColorFormat,                         // VkFormat , описывающий формат и тип, используемые для интерпретации блоков текселей в изображении
-            .components.r = VK_COMPONENT_SWIZZLE_R,            // представляет собой структуру VkComponentMapping, определяющую переназначение компонентов цвета (или компонентов глубины или трафарета после их преобразования в компоненты цвета)
-            .components.g = VK_COMPONENT_SWIZZLE_G,
-            .components.b = VK_COMPONENT_SWIZZLE_B,
-            .components.a = VK_COMPONENT_SWIZZLE_A,
-            .subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, // представляет собой структуру VkImageSubresourceRange , выбирающую набор уровней MIP-карты и слоев массива, которые будут доступны для представления
-            .subresourceRange.baseMipLevel = 0,
-            .subresourceRange.levelCount = 1,
-            .subresourceRange.baseArrayLayer = 0,
-            .subresourceRange.layerCount = 1
-        };
+        VkImageViewCreateInfo ivci; // Структура, определяющая параметры только что созданного изображения
+        ivci.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO; // тип этой структуры
+        ivci.pNext = nullptr;                                  // NULL или указатель на структуру, расширяющую эту структуру
+        ivci.flags = 0;                                        // битовая маска VkImageViewCreateFlagBits, описывающая дополнительные параметры просмотра изображения
+        ivci.viewType = VK_IMAGE_VIEW_TYPE_2D;                 // является значением VkImageViewType , указывающим тип представления изображения
+        ivci.format = m_vkColorFormat;                         // VkFormat , описывающий формат и тип, используемые для интерпретации блоков текселей в изображении
+        ivci.components.r = VK_COMPONENT_SWIZZLE_R;            // представляет собой структуру VkComponentMapping, определяющую переназначение компонентов цвета (или компонентов глубины или трафарета после их преобразования в компоненты цвета)
+        ivci.components.g = VK_COMPONENT_SWIZZLE_G;
+        ivci.components.b = VK_COMPONENT_SWIZZLE_B;
+        ivci.components.a = VK_COMPONENT_SWIZZLE_A;
+        ivci.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // представляет собой структуру VkImageSubresourceRange , выбирающую набор уровней MIP-карты и слоев массива, которые будут доступны для представления
+        ivci.subresourceRange.baseMipLevel = 0;
+        ivci.subresourceRange.levelCount = 1;
+        ivci.subresourceRange.baseArrayLayer = 0;
+        ivci.subresourceRange.layerCount = 1;
 
         for (uint32_t i = 0; i < m_swapchainImageCount; ++i)
         {
-
             ivci.image = m_vkSwapchainImages[i]; // VkImage, для которого будет создано представление
 
             res = vkCreateImageView(m_vkDevice, &ivci, NULL, &m_vkSwapchainImagesView[i]);
@@ -264,4 +275,63 @@ namespace avm::graphics
             LOG_DEBUG("Удалить цепочку обмена.");
         }
     }
+
+    void CGxVulkan::recreateSwapChain()
+    {
+        // ожидаем завершения работы
+        vkDeviceWaitIdle(m_vkDevice);
+
+        destroySwapChain();
+        createSwapChain();
+
+        LOG_DEBUG("CGxVulkan::recreateSwapChain()");
+    }
+
+    bool CGxVulkan::acquireNextImage(uint64_t timeout, VkSemaphore imageAvailableSemaphore, VkFence fence, uint32_t *pImageIndex)
+    {
+        VkResult result = vkAcquireNextImageKHR(m_vkDevice,  m_vkSwapChain, timeout, imageAvailableSemaphore, fence, pImageIndex);
+        if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+                recreateSwapChain();
+            }
+            else {
+                LOG_WARNING("Сбой vkAcquireNextImageKHR()");
+                LOG_WARNING("%s", vkResultToString(result));
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    void CGxVulkan::queuePresent(VkSemaphore renderCompleteSemaphore, uint32_t imageIndex)
+    {
+        // Структура, описывающая параметры представления
+        VkPresentInfoKHR presentInfo {
+            .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR, // тип структуры
+            .pNext = nullptr,
+            .waitSemaphoreCount = 1, // количество семафоров ожидания
+            .pWaitSemaphores = &renderCompleteSemaphore, // массив семафоров ожидания
+            .swapchainCount = 1, // количество цепочек обмена для представления
+            .pSwapchains = &m_vkSwapChain, // массив цепочек обмена
+            .pImageIndices = &imageIndex, // массив индексов изображений
+            .pResults = nullptr // массив результирующих значений выполнения
+        };
+
+        // поставить изображение в очередь для представления
+        VkResult result = vkQueuePresentKHR(m_vkQueue[QT_PRESENT], &presentInfo);
+        if (result != VK_SUCCESS) {
+            if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+            {
+                recreateSwapChain();
+            }
+            else
+            {
+                LOG_ERROR("Сбой vkQueuePresentKHR()");
+                LOG_ERROR("%s", vkResultToString(result));
+                THROW();
+            }
+        }
+    }
+    
 }

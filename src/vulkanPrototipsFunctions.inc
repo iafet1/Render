@@ -45,7 +45,6 @@ DECLARE_VK(vkGetPhysicalDeviceProperties2);
 DECLARE_VK(vkGetPhysicalDeviceQueueFamilyProperties2);
 DECLARE_VK(vkGetPhysicalDeviceSparseImageFormatProperties2);
 
-
 DECLARE_VK(vkCreateDevice); // создает логическое устройство Vulkan
 
 // VK_KHR_surface ( VK_KHR_SURFACE_EXTENSION_NAME ) - расширение экземпляра
@@ -55,25 +54,23 @@ DECLARE_VK(vkGetPhysicalDeviceSurfaceFormatsKHR);      // запрос цвет�
 DECLARE_VK(vkGetPhysicalDeviceSurfacePresentModesKHR); // запрос поддерживаемых режимов представления
 DECLARE_VK(vkGetPhysicalDeviceSurfaceSupportKHR);      // запрос, поддерживает ли поверхность представление
 
-
 // VK_KHR_win32_surface ( VK_KHR_WIN32_SURFACE_EXTENSION_NAME ) - расширение экземпляра
 DECLARE_VK(vkCreateWin32SurfaceKHR);                        // создает объект VkSurfaceKHR для родного окна Win32
 DECLARE_VK(vkGetPhysicalDeviceWin32PresentationSupportKHR); // поддержка семейства очередей запросов для презентации на дисплее Win32
 
-
 #if defined(_LOG) || defined(_DEBUG)
-    // VK_EXT_debug_utils ( VK_EXT_DEBUG_UTILS_EXTENSION_NAME ) — расширение экземпляра
-    DECLARE_VK(vkCreateDebugUtilsMessengerEXT);  // создать объект отладочного мессенджера
-    DECLARE_VK(vkDestroyDebugUtilsMessengerEXT); // уничтожить объект отладочного мессенджера
-    DECLARE_VK(vkSetDebugUtilsObjectNameEXT);    // дает понятное имя объекту
-    DECLARE_VK(vkSetDebugUtilsObjectTagEXT);     // прикрепить произвольные данные к объекту
-    DECLARE_VK(vkSubmitDebugUtilsMessageEXT);    // вставить сообщение в поток отладки
-    DECLARE_VK(vkQueueBeginDebugUtilsLabelEXT);  // открыть область метки отладки очереди
-    DECLARE_VK(vkQueueEndDebugUtilsLabelEXT);    // закрывает область метки отладки очереди
-    DECLARE_VK(vkQueueInsertDebugUtilsLabelEXT); // вставить метку в очередь
-    DECLARE_VK(vkCmdBeginDebugUtilsLabelEXT);    // открывает область метки отладки командного буфера
-    DECLARE_VK(vkCmdEndDebugUtilsLabelEXT);      // закрывает область метки командного буфера
-    DECLARE_VK(vkCmdInsertDebugUtilsLabelEXT);   // вставить метку в командный буфер
+                                                            // VK_EXT_debug_utils ( VK_EXT_DEBUG_UTILS_EXTENSION_NAME ) — расширение экземпляра
+DECLARE_VK(vkCreateDebugUtilsMessengerEXT);  // создать объект отладочного мессенджера
+DECLARE_VK(vkDestroyDebugUtilsMessengerEXT); // уничтожить объект отладочного мессенджера
+DECLARE_VK(vkSetDebugUtilsObjectNameEXT);    // дает понятное имя объекту
+DECLARE_VK(vkSetDebugUtilsObjectTagEXT);     // прикрепить произвольные данные к объекту
+DECLARE_VK(vkSubmitDebugUtilsMessageEXT);    // вставить сообщение в поток отладки
+DECLARE_VK(vkQueueBeginDebugUtilsLabelEXT);  // открыть область метки отладки очереди
+DECLARE_VK(vkQueueEndDebugUtilsLabelEXT);    // закрывает область метки отладки очереди
+DECLARE_VK(vkQueueInsertDebugUtilsLabelEXT); // вставить метку в очередь
+DECLARE_VK(vkCmdBeginDebugUtilsLabelEXT);    // открывает область метки отладки командного буфера
+DECLARE_VK(vkCmdEndDebugUtilsLabelEXT);      // закрывает область метки командного буфера
+DECLARE_VK(vkCmdInsertDebugUtilsLabelEXT);   // вставить метку в командный буфер
 #endif
 
 // необходим действительный дескриптор логического устройства Vulkan
@@ -92,10 +89,10 @@ DECLARE_VK(vkFreeMemory);                 // Освободить память �
 DECLARE_VK(vkBindImageMemory);            // привязать память устройства к объекту изображения
 
 // VK_KHR_swapchain
-DECLARE_VK(vkAcquireNextImageKHR);
-DECLARE_VK(vkCreateSwapchainKHR); // создать цепочку обмена
-DECLARE_VK(vkDestroySwapchainKHR); // уничтожить цепочку обмена
-DECLARE_VK(vkGetSwapchainImagesKHR); // получение массива презентабельных изображений, связанных с цепочкой обмена
-DECLARE_VK(vkQueuePresentKHR);
-DECLARE_VK(vkAcquireNextImage2KHR);
+DECLARE_VK(vkAcquireNextImageKHR);   // Получить индекс следующего доступного изображения
+DECLARE_VK(vkCreateSwapchainKHR);    // создать цепочку обмена
+DECLARE_VK(vkDestroySwapchainKHR);   // уничтожить цепочку обмена
+DECLARE_VK(vkGetSwapchainImagesKHR); // получение массива изображений, связанных с цепочкой обмена
+DECLARE_VK(vkQueuePresentKHR);       // поставить изображение в очередь для презентации
+DECLARE_VK(vkAcquireNextImage2KHR);  // Получить индекс следующего доступного изображения
 

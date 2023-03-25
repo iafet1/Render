@@ -22,7 +22,7 @@ namespace avm::event {
         EVENT_APP_MAX              // максимальное количество типов событий приложения
     };
 
-    // функция обратного вызова события
+    // функция обратного вызова события. если возвращает 'true', то следующий обработчик не вызывается
     typedef bool (*PFN_OnEvent)(void *object, union Variant param1, union Variant param2);
     
     // API

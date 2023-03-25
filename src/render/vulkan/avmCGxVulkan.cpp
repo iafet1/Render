@@ -124,6 +124,12 @@ namespace avm::graphics
 
     bool CGxVulkan::OnResized(void *object, Variant param1, Variant param2)
     {
+        CGxVulkan* gx = static_cast<CGxVulkan*>(object);
+
+        gx->m_vkSurfaceSize.width = param2.iData32[0];
+        gx->m_vkSurfaceSize.height = param2.iData32[1];
+        gx->m_resize = true;
+        
         return false;
     }
 
@@ -555,8 +561,12 @@ namespace avm::graphics
             LOG_ERROR("Не могу найти подходящее физическое устройство GPU.");
             THROW();
         }
-
         LOG_INFO("Необходимое физическое устройство GPU найдено.");
+
+        vkGetPhysicalDeviceProperties(gpu, &m_vkProperties);
+        vkGetPhysicalDeviceFeatures(gpu, &m_vkFeatures);
+        vkGetPhysicalDeviceMemoryProperties(gpu, &m_vkMemory);
+
         return gpu;
     }
 

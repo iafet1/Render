@@ -4,6 +4,7 @@
 
 #include "platforms.hpp"
 #include "../avmCLog.hpp"
+#include "../avmEvent.hpp"
 #include "../avmCInput.hpp"
 
 
@@ -22,29 +23,40 @@ namespace avm::platform {
 
         switch (Msg)
         {
+            // закрытие главного окна приложения и завершение программы
+            case WM_DESTROY:
+            case WM_CLOSE: {
+                in->KeyPressed(VK_ESCAPE);
+                break;
+            }
+
             // блокировка перерисовки области окна
             case WM_ERASEBKGND: {
                 return 1;
             }
 
-            // закрытие главного окна приложения и завершение программы
-            case WM_CLOSE:
-            case WM_DESTROY: {
-                in->KeyPressed(VK_ESCAPE);
-                return 0;
-            }
+            // изменение размера окна
+            case WM_SIZE: {
+                Variant size;
+                size.iData32[0] = LOWORD(lParam);
+                size.iData32[1] = HIWORD(lParam);
 
+                avm::event::SetEvent(avm::event::AppTypes::EVENT_APP_RESIZED, {nullptr}, size);
+
+                break;
+            }
+            
             // TEMP: временно 
             case WM_SYSKEYDOWN:
             case WM_KEYDOWN: {
                 in->KeyPressed(wParam);
-                return 0;
+                break;
             }
 
             case WM_SYSKEYUP:
             case WM_KEYUP: {
                 in->KeyReleased(wParam);
-                return 0;
+                break;
             }
 
             case WM_LBUTTONDOWN:
@@ -57,7 +69,7 @@ namespace avm::platform {
 
                 in->ButtonPressed(wParam, pt);
 
-                return 0;
+                break;
             }
 
             case WM_LBUTTONUP:
@@ -70,7 +82,7 @@ namespace avm::platform {
 
                 in->ButtonReleased(wParam, pt);
 
-                return 0;
+                break;
             }
 
             case WM_XBUTTONDOWN: {
@@ -107,7 +119,7 @@ namespace avm::platform {
 
                 in->MouseMove(wParam, pt);
 
-                return 0;
+                break;
             }
 
             case WM_MOUSEWHEEL: {
@@ -120,14 +132,14 @@ namespace avm::platform {
                 uint32_t code = (delta << 16) + keyState;
                 in->MouseWheel(code, pt);
 
-                return 0;
+                break;
             }
 
             default:
-                break;
+                return DefWindowProc(hWnd, Msg, wParam, lParam);
         }
 
-        return DefWindowProc(hWnd, Msg, wParam, lParam);
+        return 0;
     }
 
     void WindowCreate(WindowDesc& window, const char* name)

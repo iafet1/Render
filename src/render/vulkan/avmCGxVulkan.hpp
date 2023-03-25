@@ -71,11 +71,18 @@ namespace avm::graphics
         void getSurfaceCapabilities();
         // Запрос и установка режима представления
         void getSurfacePresentMode();
+
         // создание цепочки подкачки
         void createSwapChain();
         // уничтожение цепочки подкачки
         void destroySwapChain();
-        
+        // пересоздание цепочки обмена
+        void recreateSwapChain();
+        // получить индекс следующего доступного изображения
+        bool acquireNextImage(uint64_t timeout, VkSemaphore imageAvailableSemaphore, VkFence fence, uint32_t *pImageIndex);
+        // поставить изображение в очередь для презентации
+        void queuePresent(VkSemaphore renderCompleteSemaphore, uint32_t imageIndex);
+
         // иницилизация функций экземпляра
         void initFunctionsInstance(VkInstance instance);
         // иницилизация функций устройства
@@ -110,11 +117,15 @@ namespace avm::graphics
 
 
         VkPhysicalDevice m_vkPhysicalDevice{VK_NULL_HANDLE}; // физическое графическое устройство (GPU)
+        VkPhysicalDeviceProperties m_vkProperties{};         // свойства физического устройства
+        VkPhysicalDeviceFeatures m_vkFeatures{};             // детализированные функции, которые могут поддерживаться реализацией
+        VkPhysicalDeviceMemoryProperties m_vkMemory{};       //  свойства памяти физического устройства
+
         VkDevice m_vkDevice{VK_NULL_HANDLE};                 // логическое устройство Vulkan
 
         // индексы семейств очередей и очереди
-        std::vector<uint32_t> m_vkFamilies;                         // индексы семейств очередей
-        std::vector<VkQueueFamilyProperties> m_vkQueueFamiliesProp; // массив структур, предоставляющих информацию о семействах очередей
+        std::vector<uint32_t> m_vkFamilies{};                         // индексы семейств очередей
+        std::vector<VkQueueFamilyProperties> m_vkQueueFamiliesProp{}; // массив структур, предоставляющих информацию о семействах очередей
 
         uint32_t m_vkQueueFamily[QueueType::QT_MAX]{
             VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED,
@@ -127,16 +138,17 @@ namespace avm::graphics
         VkSurfaceKHR m_vkSurface{VK_NULL_HANDLE};       // дескриптор поверхности Vulkan
         
         // поддерживаемые свойства
-        VkExtent2D m_vkSurfaceResolution;               // размеры поверхности
-        VkColorSpaceKHR m_vkColorSpace;                 // цветовое пространство поверхности
-        VkFormat m_vkColorFormat;                       // цветовой формат поверхности
-        VkPresentModeKHR m_vkPresentationMode;          // режим представления
-        VkSurfaceTransformFlagBitsKHR m_vkPreTransform; // преобразование относительно представления
+        VkExtent2D m_vkSurfaceSize{};                     // размеры поверхности
+        VkColorSpaceKHR m_vkColorSpace{};                 // цветовое пространство поверхности
+        VkFormat m_vkColorFormat{};                       // цветовой формат поверхности
+        VkPresentModeKHR m_vkPresentationMode{};          // режим представления
+        VkSurfaceTransformFlagBitsKHR m_vkPreTransform{}; // преобразование относительно представления
 
         // цепочка обмена (буфферизация)
         VkSwapchainKHR m_vkSwapChain{VK_NULL_HANDLE};         // цепочка обмена(подкачки) изображения
         uint32_t m_swapchainImageCount{MAX_FRAMES_IN_FLIGHT}; // количество изображений в цепочке обмена
         VkImage *m_vkSwapchainImages{nullptr};         // массив изображений в цепочке обмена
         VkImageView *m_vkSwapchainImagesView{nullptr}; // массив представлений изображений цепочки обмена
+
     };
 }

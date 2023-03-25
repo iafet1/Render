@@ -10,7 +10,7 @@
 namespace avm::graphics
 {
     // максимальное количество буферов подкачки
-    constexpr int MAX_FRAMES_IN_FLIGHT{2};
+    constexpr int MAX_FRAMES_IN_FLIGHT{3};
 
     // Интерфейс графического драйвера
     class CGxDevice
@@ -40,6 +40,8 @@ namespace avm::graphics
     protected:
         // data
         uint64_t m_indexFrame{0}; // индекс тикущего фрейма изображения
+
+        bool m_resize{false};
     };
 
 }
